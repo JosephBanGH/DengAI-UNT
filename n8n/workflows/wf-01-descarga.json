@@ -1,0 +1,145 @@
+{
+  "name": "WF-01 · Descarga programada de datos meteorológicos y epidemiológicos",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 2 * * 1"
+            }
+          ]
+        }
+      },
+      "id": "wf01-schedule",
+      "name": "Programación semanal (lunes 02:00)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [220, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "1", "name": "base_url", "value": "http://backend:8000/api/v1", "type": "string" },
+            { "id": "2", "name": "workflow_code", "value": "WF-01", "type": "string" }
+          ]
+        }
+      },
+      "id": "wf01-config",
+      "name": "Configuración",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.base_url }}/auth/login",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "Content-Type", "value": "application/json" }]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ email: $env.DENGAI_USER, password: $env.DENGAI_PASSWORD }) }}",
+        "options": { "timeout": 30000, "retry": { "retryOnFail": true, "maxTries": 3, "waitBetweenTries": 5000 } }
+      },
+      "id": "wf01-login",
+      "name": "Autenticación en la plataforma",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [660, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Configuración').item.json.base_url }}/workflows/WF-01/run",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $json.access_token }}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "options": { "timeout": 120000, "retry": { "retryOnFail": true, "maxTries": 2, "waitBetweenTries": 10000 } }
+      },
+      "id": "wf01-run",
+      "name": "Ejecutar WF-01 en FastAPI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [880, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "version": 2 },
+          "conditions": [
+            {
+              "id": "wf01-check",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "COMPLETED",
+              "operator": { "type": "string", "operation": "notEquals" }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "wf01-if",
+      "name": "¿Falló la ejecución?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [1100, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "1", "name": "estado", "value": "completado", "type": "string" },
+            { "id": "2", "name": "detalle", "value": "={{ $json }}", "type": "object" }
+          ]
+        }
+      },
+      "id": "wf01-ok",
+      "name": "Registrar éxito",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1320, 220]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "1", "name": "estado", "value": "fallido", "type": "string" },
+            { "id": "2", "name": "mensaje", "value": "={{ $json.error_message || 'WF-01 no completó' }}", "type": "string" }
+          ]
+        }
+      },
+      "id": "wf01-fail",
+      "name": "Notificación de fallo",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1320, 400]
+    }
+  ],
+  "connections": {
+    "Programación semanal (lunes 02:00)": { "main": [[{ "node": "Configuración", "type": "main", "index": 0 }]] },
+    "Configuración": { "main": [[{ "node": "Autenticación en la plataforma", "type": "main", "index": 0 }]] },
+    "Autenticación en la plataforma": { "main": [[{ "node": "Ejecutar WF-01 en FastAPI", "type": "main", "index": 0 }]] },
+    "Ejecutar WF-01 en FastAPI": { "main": [[{ "node": "¿Falló la ejecución?", "type": "main", "index": 0 }]] },
+    "¿Falló la ejecución?": {
+      "main": [
+        [{ "node": "Notificación de fallo", "type": "main", "index": 0 }],
+        [{ "node": "Registrar éxito", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": { "executionOrder": "v1", "saveDataErrorExecution": "all", "saveDataSuccessExecution": "all" },
+  "staticData": null,
+  "meta": {
+    "instanceId": "dengai-sp01",
+    "description": "Descarga programada de datos meteorológicos y epidemiológicos. Requiere DENGAI_USER y DENGAI_PASSWORD en el entorno de n8n y LIVE_INTEGRATIONS_ENABLED=1 en el backend para consultar NASA POWER."
+  },
+  "tags": [{ "name": "SP-01 Dengue" }, { "name": "WF-01" }]
+}

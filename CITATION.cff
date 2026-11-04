@@ -1,0 +1,35 @@
+cff-version: 1.2.0
+message: "Si utiliza esta plataforma en una investigación, cite el repositorio y el artículo asociado."
+title: "SP-01 Dengue Intelligence: Sistema Inteligente de Predicción Espacio-Temporal y Alerta Temprana de Brotes de Dengue"
+abstract: >-
+  Plataforma web de apoyo a la decisión epidemiológica que integra datos climáticos, ambientales,
+  geoespaciales y de vigilancia para pronosticar casos de dengue por distrito y semana
+  epidemiológica, clasificar el riesgo, emitir alertas tempranas y explicar los factores asociados
+  mediante aprendizaje profundo explicable. Incluye backend FastAPI, frontend React, pipeline
+  científico reproducible, laboratorio de cinco algoritmos, mapas territoriales, reportes y
+  bitácora de auditoría encadenada.
+type: software
+license: MIT
+version: "1.0.0"
+date-released: "2026-11-04"
+keywords:
+  - dengue
+  - epidemiología
+  - predicción espacio-temporal
+  - aprendizaje profundo
+  - ConvLSTM
+  - XGBoost
+  - SHAP
+  - alerta temprana
+  - salud pública
+  - Perú
+authors:
+  - name: "Equipo SP-01 Dengue Intelligence"
+    affiliation: "Universidad Nacional de Trujillo"
+repository-code: "https://github.com/REEMPLAZAR-USUARIO/DengAI-UNT"
+url: "https://github.com/REEMPLAZAR-USUARIO/DengAI-UNT"
+references:
+  - type: software
+    title: "Repositorio de reproducibilidad del prototipo SP-01"
+    notes: >-
+      Sustituya este bloque por la referencia del artículo científico (IMRyD) cuando se publique.

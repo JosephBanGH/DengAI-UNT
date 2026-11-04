@@ -1,0 +1,18 @@
+# Contexto de build mínimo: evita enviar dependencias y datos locales al demonio.
+libs/
+node_modules/
+.npm-cache/
+.tmp/
+data/
+logs/
+.git/
+.gitignore
+__pycache__/
+*.pyc
+.pytest_cache/
+frontend/dist/
+frontend/.tmp/
+docs/screenshots/
+ml/notebooks/
+.venv/
+*.log

@@ -1,0 +1,31 @@
+# Normaliza finales de línea: el repositorio se trabaja también en Windows.
+* text=auto eol=lf
+
+*.py      text eol=lf
+*.ts      text eol=lf
+*.tsx     text eol=lf
+*.js      text eol=lf
+*.json    text eol=lf
+*.md      text eol=lf
+*.yml     text eol=lf
+*.yaml    text eol=lf
+*.css     text eol=lf
+*.html    text eol=lf
+*.sql     text eol=lf
+*.sh      text eol=lf
+*.ps1     text eol=crlf
+*.bat     text eol=crlf
+Dockerfile text eol=lf
+
+# Binarios
+*.png     binary
+*.jpg     binary
+*.ico     binary
+*.woff    binary
+*.woff2   binary
+*.joblib  binary
+*.npz     binary
+
+# Archivos generados: no participan en diffs ni en conflictos
+package-lock.json linguist-generated=true
+docs/screenshots/*.png linguist-documentation=true

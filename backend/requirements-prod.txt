@@ -1,0 +1,10 @@
+# Dependencias adicionales para PostgreSQL + PostGIS y registro de experimentos.
+psycopg2-binary==2.9.10
+geoalchemy2==0.17.1
+
+# Opcional: registro de experimentos en MLflow (el backend funciona sin él,
+# usando el registro interno en base de datos).
+mlflow-skinny==3.1.4
+
+# Opcional: pruebas automatizadas
+pytest==8.3.4

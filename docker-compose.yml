@@ -1,0 +1,94 @@
+# SP-01 Dengue Intelligence · despliegue con PostgreSQL/PostGIS + n8n
+# Uso:  docker compose up -d --build
+#       http://localhost:8080  (aplicación)
+#       http://localhost:5678  (n8n)
+
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: dengai-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: dengai
+      POSTGRES_USER: dengai
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dengai}
+      TZ: America/Lima
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./database/scripts:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dengai -d dengai"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: dengai-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ENVIRONMENT: production
+      # Dentro del contenedor hay que escuchar en todas las interfaces: si se deja
+      # 127.0.0.1 el puerto publicado y el proxy de nginx no alcanzan la API.
+      HOST: 0.0.0.0
+      PORT: "8000"
+      DATABASE_URL: postgresql+psycopg2://dengai:${POSTGRES_PASSWORD:-dengai}@db:5432/dengai
+      POSTGIS_ENABLED: "true"
+      SECRET_KEY: ${SECRET_KEY:?Defina SECRET_KEY en el archivo .env}
+      BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL:-admin@dengai.unt.edu.pe}
+      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:-Admin#Dengue2025}
+      MLFLOW_ENABLED: "false"
+      LIVE_INTEGRATIONS_ENABLED: ${LIVE_INTEGRATIONS_ENABLED:-false}
+      TZ: America/Lima
+    volumes:
+      - app_data:/app/data
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: dengai-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+
+  n8n:
+    image: n8nio/n8n:1.70.3
+    container_name: dengai-n8n
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      N8N_HOST: localhost
+      N8N_PORT: 5678
+      N8N_PROTOCOL: http
+      GENERIC_TIMEZONE: America/Lima
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY:-cambie-esta-clave-de-cifrado}
+      N8N_BASIC_AUTH_ACTIVE: "true"
+      N8N_BASIC_AUTH_USER: ${N8N_USER:-admin}
+      N8N_BASIC_AUTH_PASSWORD: ${N8N_PASSWORD:-admin-n8n}
+      DENGAI_BASE_URL: http://backend:8000/api/v1
+      DENGAI_USER: ${BOOTSTRAP_ADMIN_EMAIL:-admin@dengai.unt.edu.pe}
+      DENGAI_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:-Admin#Dengue2025}
+      DENGAI_ALERT_WEBHOOK: ${DENGAI_ALERT_WEBHOOK:-}
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./n8n/workflows:/workflows:ro
+    ports:
+      - "5678:5678"
+
+volumes:
+  db_data:
+  app_data:
+  n8n_data:

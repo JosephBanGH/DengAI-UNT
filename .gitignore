@@ -1,0 +1,60 @@
+# ---------------------------------------------------------------------------
+# Secretos y configuración local
+# ---------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+*.env.local
+
+# ---------------------------------------------------------------------------
+# Dependencias instaladas localmente (se reinstalan con pip/npm)
+# ---------------------------------------------------------------------------
+libs/
+.venv/
+venv/
+node_modules/
+.npm-cache/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# ---------------------------------------------------------------------------
+# Datos y artefactos generados (base operativa, modelos, reportes)
+# ---------------------------------------------------------------------------
+data/
+logs/
+.tmp/
+*.sqlite3
+*.db
+*.db-wal
+*.db-shm
+*.joblib
+*.npz
+
+# ---------------------------------------------------------------------------
+# Frontend compilado (se reconstruye con `npm run build`)
+# ---------------------------------------------------------------------------
+frontend/dist/
+frontend/.tmp/
+
+# ---------------------------------------------------------------------------
+# Cobertura y pruebas
+# ---------------------------------------------------------------------------
+.coverage
+coverage.xml
+htmlcov/
+pytest-cache-files-*/
+
+# ---------------------------------------------------------------------------
+# Editores y sistema operativo
+# ---------------------------------------------------------------------------
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log

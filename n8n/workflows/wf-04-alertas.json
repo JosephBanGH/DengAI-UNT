@@ -1,0 +1,96 @@
+{
+  "name": "WF-04 · Envío automático de alertas tempranas",
+  "nodes": [
+    {
+      "parameters": { "rule": { "interval": [{ "field": "cronExpression", "expression": "30 4 * * 1" }] } },
+      "id": "wf04-schedule",
+      "name": "Programación semanal (lunes 04:30)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [220, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.DENGAI_BASE_URL }}/auth/login",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [{ "name": "Content-Type", "value": "application/json" }] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ email: $env.DENGAI_USER, password: $env.DENGAI_PASSWORD }) }}",
+        "options": { "timeout": 30000, "retry": { "retryOnFail": true, "maxTries": 3, "waitBetweenTries": 5000 } }
+      },
+      "id": "wf04-login",
+      "name": "Autenticación",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.DENGAI_BASE_URL }}/workflows/WF-04/run",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $json.access_token }}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "options": { "timeout": 120000, "retry": { "retryOnFail": true, "maxTries": 3, "waitBetweenTries": 10000 } }
+      },
+      "id": "wf04-run",
+      "name": "Generar alertas en FastAPI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [660, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.DENGAI_BASE_URL }}/alerts",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "Authorization", "value": "=Bearer {{ $('Autenticación').item.json.access_token }}" }]
+        },
+        "sendQuery": true,
+        "queryParameters": { "parameters": [{ "name": "status", "value": "OPEN" }, { "name": "size", "value": "50" }] },
+        "options": { "timeout": 60000 }
+      },
+      "id": "wf04-list",
+      "name": "Listar alertas abiertas",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [880, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.DENGAI_ALERT_WEBHOOK }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ canal: 'n8n', total: ($json.items || []).length, alertas: ($json.items || []).slice(0, 10) }) }}",
+        "options": { "timeout": 30000, "retry": { "retryOnFail": true, "maxTries": 3, "waitBetweenTries": 15000 } }
+      },
+      "id": "wf04-notify",
+      "name": "Notificar por webhook",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1100, 300],
+      "notes": "Configure DENGAI_ALERT_WEBHOOK con su canal institucional (Teams, Slack, correo). Si está vacío, desactive este nodo."
+    }
+  ],
+  "connections": {
+    "Programación semanal (lunes 04:30)": { "main": [[{ "node": "Autenticación", "type": "main", "index": 0 }]] },
+    "Autenticación": { "main": [[{ "node": "Generar alertas en FastAPI", "type": "main", "index": 0 }]] },
+    "Generar alertas en FastAPI": { "main": [[{ "node": "Listar alertas abiertas", "type": "main", "index": 0 }]] },
+    "Listar alertas abiertas": { "main": [[{ "node": "Notificar por webhook", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1", "saveDataErrorExecution": "all", "saveDataSuccessExecution": "all" },
+  "staticData": null,
+  "meta": {
+    "instanceId": "dengai-sp01",
+    "description": "Genera alertas a partir de los pronósticos vigentes y las reenvía al canal institucional configurado. El envío externo requiere DENGAI_ALERT_WEBHOOK."
+  },
+  "tags": [{ "name": "SP-01 Dengue" }, { "name": "WF-04" }]
+}

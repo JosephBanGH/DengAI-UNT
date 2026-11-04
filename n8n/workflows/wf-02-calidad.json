@@ -1,0 +1,137 @@
+{
+  "name": "WF-02 · Limpieza automática, validación y detección de faltantes",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": { "interval": [{ "field": "cronExpression", "expression": "30 2 * * 1" }] }
+      },
+      "id": "wf02-schedule",
+      "name": "Programación semanal (lunes 02:30)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [220, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.DENGAI_BASE_URL }}/auth/login",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [{ "name": "Content-Type", "value": "application/json" }] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ email: $env.DENGAI_USER, password: $env.DENGAI_PASSWORD }) }}",
+        "options": { "timeout": 30000, "retry": { "retryOnFail": true, "maxTries": 3, "waitBetweenTries": 5000 } }
+      },
+      "id": "wf02-login",
+      "name": "Autenticación",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.DENGAI_BASE_URL }}/workflows/WF-02/run",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $json.access_token }}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "options": { "timeout": 120000, "retry": { "retryOnFail": true, "maxTries": 2, "waitBetweenTries": 10000 } }
+      },
+      "id": "wf02-run",
+      "name": "Ejecutar WF-02 en FastAPI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [660, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.DENGAI_BASE_URL }}/data/quality",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "Authorization", "value": "=Bearer {{ $('Autenticación').item.json.access_token }}" }]
+        },
+        "options": { "timeout": 60000 }
+      },
+      "id": "wf02-quality",
+      "name": "Recuperar reporte de calidad",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [880, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "version": 2 },
+          "conditions": [
+            {
+              "id": "wf02-check",
+              "leftValue": "={{ $json.missing_climate_pct }}",
+              "rightValue": 5,
+              "operator": { "type": "number", "operation": "gt" }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "wf02-if",
+      "name": "¿Faltantes críticos (>5 %)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [1100, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "1", "name": "alerta", "value": "Datos faltantes por encima del umbral", "type": "string" },
+            { "id": "2", "name": "porcentaje", "value": "={{ $json.missing_climate_pct }}", "type": "number" }
+          ]
+        }
+      },
+      "id": "wf02-fail",
+      "name": "Alertar datos incompletos",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1320, 400]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "1", "name": "estado", "value": "calidad_aceptable", "type": "string" },
+            { "id": "2", "name": "sintetico_pct", "value": "={{ $json.synthetic_share_pct }}", "type": "number" }
+          ]
+        }
+      },
+      "id": "wf02-ok",
+      "name": "Registrar calidad aceptable",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1320, 220]
+    }
+  ],
+  "connections": {
+    "Programación semanal (lunes 02:30)": { "main": [[{ "node": "Autenticación", "type": "main", "index": 0 }]] },
+    "Autenticación": { "main": [[{ "node": "Ejecutar WF-02 en FastAPI", "type": "main", "index": 0 }]] },
+    "Ejecutar WF-02 en FastAPI": { "main": [[{ "node": "Recuperar reporte de calidad", "type": "main", "index": 0 }]] },
+    "Recuperar reporte de calidad": { "main": [[{ "node": "¿Faltantes críticos (>5 %)?", "type": "main", "index": 0 }]] },
+    "¿Faltantes críticos (>5 %)?": {
+      "main": [
+        [{ "node": "Alertar datos incompletos", "type": "main", "index": 0 }],
+        [{ "node": "Registrar calidad aceptable", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": { "executionOrder": "v1", "saveDataErrorExecution": "all", "saveDataSuccessExecution": "all" },
+  "staticData": null,
+  "meta": {
+    "instanceId": "dengai-sp01",
+    "description": "Limpieza automática, validación y detección de faltantes. Registra chequeos de calidad y alerta si los faltantes superan el 5 %."
+  },
+  "tags": [{ "name": "SP-01 Dengue" }, { "name": "WF-02" }]
+}

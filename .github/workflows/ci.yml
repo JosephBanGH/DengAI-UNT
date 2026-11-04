@@ -1,0 +1,118 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend · pruebas
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Instalar dependencias
+        run: |
+          # torch se omite en CI: la plataforma degrada a XGBoost si no está presente.
+          # xgboost se instala sin dependencias porque su wheel declara nvidia-nccl-cu12 (351 MB).
+          grep -Ev "^(torch|xgboost)" backend/requirements.txt > /tmp/req.txt
+          pip install -r /tmp/req.txt
+          pip install --no-deps "xgboost==3.0.5"
+
+      - name: Verificar importaciones críticas
+        run: python -c "import fastapi, sqlalchemy, pydantic, jwt, bcrypt, reportlab, openpyxl, docx, xgboost, shap, optuna; print('dependencias OK')"
+
+      - name: Pruebas automatizadas
+        env:
+          PYTHONPATH: ${{ github.workspace }}/backend:${{ github.workspace }}
+        run: python -m pytest backend/tests -q
+
+  frontend:
+    name: Frontend · tipos y build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci --no-audit --no-fund
+
+      - name: Verificación de tipos
+        run: npx tsc --noEmit
+
+      - name: Build de producción
+        run: npm run build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist
+          retention-days: 7
+
+  docker:
+    name: Docker · build de la imagen
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Construir la imagen del backend (sin publicar)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: backend/Dockerfile
+          push: false
+          load: true
+          tags: dengai-backend:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Comprobar que la imagen arranca y responde
+        run: |
+          docker run -d --name ci-backend -p 8000:8000 \
+            -e SECRET_KEY=ci-secret-key-not-for-production \
+            dengai-backend:ci
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8000/api/v1/health > /dev/null; then
+              echo "API saludable"; break
+            fi
+            sleep 3
+          done
+          curl -fsS http://127.0.0.1:8000/api/v1/health | head -c 400
+          docker logs ci-backend --tail 20
+          docker rm -f ci-backend
+
+  compose:
+    name: Compose · validación
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validar docker-compose.yml
+        run: |
+          cp .env.example .env
+          sed -i 's/^SECRET_KEY=$/SECRET_KEY=ci-secret-key-not-for-production/' .env
+          docker compose config --quiet && echo "compose válido"

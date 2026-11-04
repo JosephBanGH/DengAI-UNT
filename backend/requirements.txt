@@ -1,0 +1,33 @@
+# Dependencias del backend con las versiones verificadas en este entorno.
+fastapi==0.118.0
+uvicorn[standard]==0.37.0
+starlette==0.48.0
+sqlalchemy==2.0.43
+alembic==1.20.1
+pydantic==2.11.9
+pydantic-settings==2.11.0
+PyJWT==2.10.1
+bcrypt==4.2.1
+python-multipart==0.0.20
+email-validator==2.3.0
+httpx==0.28.1
+jinja2==3.1.6
+reportlab==4.4.4
+python-docx==1.2.0
+openpyxl==3.1.5
+lxml==6.0.2
+
+# Ciencia de datos y machine learning
+numpy==2.2.6
+pandas==2.3.3
+scikit-learn==1.7.2
+scipy==1.16.2
+xgboost==3.0.5
+shap==0.48.0
+optuna==4.5.0
+joblib==1.5.2
+shapely==2.2.0
+
+# Deep learning (CPU). Sustituya por la rueda CUDA si dispone de GPU:
+#   pip install torch --index-url https://download.pytorch.org/whl/cu121
+torch==2.9.1+cpu

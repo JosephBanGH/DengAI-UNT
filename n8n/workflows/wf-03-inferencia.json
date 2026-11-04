@@ -1,0 +1,110 @@
+{
+  "name": "WF-03 · Inferencia semanal programada",
+  "nodes": [
+    {
+      "parameters": { "rule": { "interval": [{ "field": "cronExpression", "expression": "0 4 * * 1" }] } },
+      "id": "wf03-schedule",
+      "name": "Programación semanal (lunes 04:00)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [220, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.DENGAI_BASE_URL }}/auth/login",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [{ "name": "Content-Type", "value": "application/json" }] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ email: $env.DENGAI_USER, password: $env.DENGAI_PASSWORD }) }}",
+        "options": { "timeout": 30000, "retry": { "retryOnFail": true, "maxTries": 3, "waitBetweenTries": 5000 } }
+      },
+      "id": "wf03-login",
+      "name": "Autenticación",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.DENGAI_BASE_URL }}/ml/models",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "Authorization", "value": "=Bearer {{ $json.access_token }}" }]
+        },
+        "options": { "timeout": 60000, "retry": { "retryOnFail": true, "maxTries": 2, "waitBetweenTries": 8000 } }
+      },
+      "id": "wf03-models",
+      "name": "Verificar modelos en producción",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [660, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.DENGAI_BASE_URL }}/workflows/WF-03/run",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $('Autenticación').item.json.access_token }}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "options": { "timeout": 300000, "retry": { "retryOnFail": true, "maxTries": 2, "waitBetweenTries": 15000 } }
+      },
+      "id": "wf03-run",
+      "name": "Ejecutar inferencia WF-03",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [880, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.DENGAI_BASE_URL }}/risk/current",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "Authorization", "value": "=Bearer {{ $('Autenticación').item.json.access_token }}" }]
+        },
+        "options": { "timeout": 60000 }
+      },
+      "id": "wf03-risk",
+      "name": "Consultar matriz de riesgo",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1100, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "1", "name": "resumen", "value": "={{ $json.summary }}", "type": "object" },
+            { "id": "2", "name": "metodo", "value": "={{ $json.method }}", "type": "string" }
+          ]
+        }
+      },
+      "id": "wf03-summary",
+      "name": "Resumir riesgo por nivel",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1320, 300]
+    }
+  ],
+  "connections": {
+    "Programación semanal (lunes 04:00)": { "main": [[{ "node": "Autenticación", "type": "main", "index": 0 }]] },
+    "Autenticación": { "main": [[{ "node": "Verificar modelos en producción", "type": "main", "index": 0 }]] },
+    "Verificar modelos en producción": { "main": [[{ "node": "Ejecutar inferencia WF-03", "type": "main", "index": 0 }]] },
+    "Ejecutar inferencia WF-03": { "main": [[{ "node": "Consultar matriz de riesgo", "type": "main", "index": 0 }]] },
+    "Consultar matriz de riesgo": { "main": [[{ "node": "Resumir riesgo por nivel", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1", "saveDataErrorExecution": "all", "saveDataSuccessExecution": "all" },
+  "staticData": null,
+  "meta": {
+    "instanceId": "dengai-sp01",
+    "description": "Inferencia semanal programada con los modelos en producción. Si no hay modelo promovido, el backend responde SKIPPED y se registra la ejecución."
+  },
+  "tags": [{ "name": "SP-01 Dengue" }, { "name": "WF-03" }]
+}

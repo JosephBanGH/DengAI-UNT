@@ -1,0 +1,37 @@
+MIT License
+
+Copyright (c) 2026 Equipo SP-01 Dengue Intelligence · Universidad Nacional de Trujillo
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+--------------------------------------------------------------------------------
+NOTA SOBRE DATOS DE TERCEROS
+
+Esta licencia cubre únicamente el código fuente. Los datos que la plataforma
+puede consumir conservan sus propias licencias:
+
+  · MINSA / CDC Perú ............ datos abiertos del Estado peruano (atribución)
+  · CDC Dengue Data ............. dominio público (obra del Gobierno de EE. UU.)
+  · WHO Global Health Observatory  CC BY-NC-SA 3.0 IGO
+  · NASA POWER .................. acceso abierto con atribución
+  · CHIRPS ...................... CC0 / uso libre con atribución
+  · WorldPop .................... CC BY 4.0
+
+El conjunto de demostración incluido se genera por código con semilla fija, se
+identifica como SINTÉTICO en toda la aplicación y no deriva de datos de pacientes.
