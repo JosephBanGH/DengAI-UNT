@@ -29,7 +29,7 @@ RUN grep -Ev "^(torch|xgboost)" /app/backend/requirements.txt > /tmp/req.txt \
 
 # Verificación temprana: si falta cualquier dependencia crítica el build falla aquí
 # y no en el arranque del contenedor.
-RUN python -c "import uvicorn, fastapi, sqlalchemy, pydantic, jwt, bcrypt, reportlab, openpyxl, docx, numpy, scipy, xgboost, torch, shap, optuna; print('dependencias OK')"
+RUN python -c "import uvicorn, fastapi, sqlalchemy, pydantic, jwt, bcrypt, reportlab, openpyxl, docx, numpy, scipy, xgboost, torch, shap, optuna, mlflow, minio; print('dependencias OK')"
 
 COPY backend /app/backend
 COPY run_api.py /app/run_api.py

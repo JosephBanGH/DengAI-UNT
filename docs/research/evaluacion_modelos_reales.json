@@ -1,0 +1,218 @@
+{
+  "timestamp": "2026-11-07T20:32:01Z",
+  "data_mode": "real",
+  "is_synthetic": false,
+  "districts_count": 13,
+  "test_samples": 338,
+  "test_blocks_weeks": 26,
+  "model_metrics": {
+    "xgboost": {
+      "mae": 2.0382,
+      "rmse": 2.4569,
+      "mase": 3.6033,
+      "auc_pr": 0.5756,
+      "sensitivity": 0.9,
+      "specificity": 0.9421,
+      "training_time_s": 1.83
+    },
+    "lstm": {
+      "mae": 1.8274,
+      "rmse": 4.7253,
+      "mase": 3.2306,
+      "auc_pr": 0.7319,
+      "sensitivity": 0.9,
+      "specificity": 0.9329,
+      "training_time_s": 15.78
+    },
+    "convlstm": {
+      "mae": 1.0624,
+      "rmse": 2.1441,
+      "mase": 1.8782,
+      "auc_pr": 0.1198,
+      "sensitivity": 0.9,
+      "specificity": 0.622,
+      "training_time_s": 183.34
+    },
+    "cnn_lstm": {
+      "mae": 2.3148,
+      "rmse": 5.3755,
+      "mase": 4.0923,
+      "auc_pr": 0.195,
+      "sensitivity": 0.7,
+      "specificity": 0.8933,
+      "training_time_s": 19.52
+    },
+    "convlstm_attention": {
+      "mae": 5.4879,
+      "rmse": 11.172,
+      "mase": 9.7019,
+      "auc_pr": 0.1385,
+      "sensitivity": 0.8,
+      "specificity": 0.7622,
+      "training_time_s": 194.45
+    }
+  },
+  "friedman_test": {
+    "test_name": "Friedman",
+    "applicable": true,
+    "statistic": 38.49230769230775,
+    "p_value": 8.868376437155441e-08,
+    "significant": true,
+    "mean_ranks": {
+      "xgboost": 4.1538,
+      "lstm": 2.0769,
+      "convlstm": 2.0769,
+      "cnn_lstm": 2.8846,
+      "convlstm_attention": 3.8077
+    },
+    "n_blocks": 26,
+    "n_models": 5,
+    "interpretation": "Existen diferencias significativas entre modelos (alpha=0.05)."
+  },
+  "pairwise_wilcoxon_holm": [
+    {
+      "test_name": "Wilcoxon",
+      "comparison": "xgboost vs lstm",
+      "applicable": true,
+      "statistic": 135.0,
+      "p_value": 0.3152514398097992,
+      "effect_size": -0.5753451669201043,
+      "n_pairs": 26,
+      "median_loss_diff": -1.1803830467845098,
+      "p_value_adjusted": 0.9457543194293976,
+      "significant_holm": false
+    },
+    {
+      "test_name": "Wilcoxon",
+      "comparison": "xgboost vs convlstm",
+      "applicable": true,
+      "statistic": 30.0,
+      "p_value": 6.031990051269531e-05,
+      "effect_size": -1.4104429788922508,
+      "n_pairs": 26,
+      "median_loss_diff": -1.1460079713366351,
+      "p_value_adjusted": 0.0005428791046142578,
+      "significant_holm": true
+    },
+    {
+      "test_name": "Wilcoxon",
+      "comparison": "xgboost vs cnn_lstm",
+      "applicable": true,
+      "statistic": 104.0,
+      "p_value": 0.07092106342315674,
+      "effect_size": -0.35091940895633006,
+      "n_pairs": 26,
+      "median_loss_diff": -1.156161673940145,
+      "p_value_adjusted": 0.3546053171157837,
+      "significant_holm": false
+    },
+    {
+      "test_name": "Wilcoxon",
+      "comparison": "xgboost vs convlstm_attention",
+      "applicable": true,
+      "statistic": 146.0,
+      "p_value": 0.4677756428718567,
+      "effect_size": -0.12716805634459072,
+      "n_pairs": 26,
+      "median_loss_diff": -1.1543934615744127,
+      "p_value_adjusted": 0.9457543194293976,
+      "significant_holm": false
+    },
+    {
+      "test_name": "Wilcoxon",
+      "comparison": "lstm vs convlstm",
+      "applicable": true,
+      "statistic": 143.0,
+      "p_value": 0.42270219326019287,
+      "effect_size": 0.0306592573955297,
+      "n_pairs": 26,
+      "median_loss_diff": 0.04621179185162941,
+      "p_value_adjusted": 0.9457543194293976,
+      "significant_holm": false
+    },
+    {
+      "test_name": "Wilcoxon",
+      "comparison": "lstm vs cnn_lstm",
+      "applicable": true,
+      "statistic": 109.0,
+      "p_value": 0.09407302737236023,
+      "effect_size": 0.07366264578085183,
+      "n_pairs": 26,
+      "median_loss_diff": 0.1145494767966179,
+      "p_value_adjusted": 0.3762921094894409,
+      "significant_holm": false
+    },
+    {
+      "test_name": "Wilcoxon",
+      "comparison": "lstm vs convlstm_attention",
+      "applicable": true,
+      "statistic": 53.0,
+      "p_value": 0.0011651217937469482,
+      "effect_size": 0.028306240072432706,
+      "n_pairs": 26,
+      "median_loss_diff": 0.20547071130536448,
+      "p_value_adjusted": 0.0069907307624816895,
+      "significant_holm": true
+    },
+    {
+      "test_name": "Wilcoxon",
+      "comparison": "convlstm vs cnn_lstm",
+      "applicable": true,
+      "statistic": 46.0,
+      "p_value": 0.0005246102809906006,
+      "effect_size": 0.02781848349593335,
+      "n_pairs": 26,
+      "median_loss_diff": 0.07580818423929694,
+      "p_value_adjusted": 0.004196882247924805,
+      "significant_holm": true
+    },
+    {
+      "test_name": "Wilcoxon",
+      "comparison": "convlstm vs convlstm_attention",
+      "applicable": true,
+      "statistic": 25.0,
+      "p_value": 2.6941299438476562e-05,
+      "effect_size": 0.010721555013490962,
+      "n_pairs": 26,
+      "median_loss_diff": 0.09272935650474562,
+      "p_value_adjusted": 0.0002694129943847656,
+      "significant_holm": true
+    },
+    {
+      "test_name": "Wilcoxon",
+      "comparison": "cnn_lstm vs convlstm_attention",
+      "applicable": true,
+      "statistic": 51.0,
+      "p_value": 0.0009347796440124512,
+      "effect_size": 0.0032374984192591557,
+      "n_pairs": 26,
+      "median_loss_diff": 0.020833502997202935,
+      "p_value_adjusted": 0.006543457508087158,
+      "significant_holm": true
+    }
+  ],
+  "mcnemar_test": {
+    "test_name": "McNemar",
+    "comparison": "convlstm_attention vs xgboost",
+    "applicable": true,
+    "statistic": 3.0,
+    "p_value": 1.1039169578452857e-11,
+    "significant": true,
+    "b": 3,
+    "c": 50,
+    "n_pairs": 338,
+    "interpretation": "convlstm_attention y xgboost difieren en la clasificación de brote."
+  },
+  "delong_test": {
+    "test_name": "DeLong",
+    "comparison": "convlstm_attention vs xgboost",
+    "applicable": true,
+    "auc_a": 0.8359788359788359,
+    "auc_b": 0.9350749559082893,
+    "statistic": -3.4729025178947643,
+    "p_value": 0.0005148623232935634,
+    "significant": true,
+    "n_observations": 338,
+    "interpretation": "Las AUC de convlstm_attention y xgboost difieren significativamente."
+  }
+}

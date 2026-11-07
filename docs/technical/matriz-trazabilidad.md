@@ -28,8 +28,8 @@ verificarla. Las rutas son relativas a la raíz del repositorio.
 | RF-19 | Interpretabilidad | M09 | `ml/explain.py` (SHAP + permutación) | `/ml/explain/{code}`, UI «Explicar» |
 | RF-20 | Mapas interactivos | M10 | `geo_service`, `components/Choropleth.tsx` | Captura `mapa.png`, `/geo/risk-map` |
 | RF-21 | Alertas tempranas | M11 | `services/alerts_service.py` | `/alerts/generate`, `alerts` con `alert_key` único |
-| RF-22 | Workflows WF-01..WF-04 | M12 | `n8n/workflows/*.json`, `services/workflows_service.py` | `/workflows`, `/workflows/{code}/run`, `workflow_executions` |
-| RF-23 | Asistente RAG | M13 | `services/assistant_service.py` | `/assistant/ask` con fuentes citadas |
+| RF-22 | Workflows WF-01..WF-06 | M12 | `n8n/workflows/wf-01..06.json`, `services/workflows_service.py` | `/workflows`, `/workflows/{code}/run`, `workflow_executions` (6 flujos completos) |
+| RF-23 | Asistente RAG + LangFlow | M13 | `services/assistant_service.py`, `langflow/flows/` | `/assistant/ask`, evaluación formal en `data/reports/evaluacion_rag_langflow.json` |
 | RF-24 | Reportes PDF/DOCX/XLSX | M14 | `services/reports_service.py` | 16 tipos; descarga verificada |
 | RF-25 | Configuración del sistema | M15 | `system_config`, `/admin/config` | Validación `low < moderate < high` |
 | RF-26 | Reproducibilidad científica | M16 | `datasets`, diccionario, notebook | `dataset_service`, `ml/notebooks/` |
@@ -54,18 +54,19 @@ verificarla. Las rutas son relativas a la raíz del repositorio.
 | Requisito del caso SP-01 | Implementación | Estado |
 |---|---|---|
 | Unidad distrito-semana | `dengue_cases` con restricción única | Cumplido |
-| Variables: temperatura, humedad, precipitación, altitud, densidad, incidencia histórica, índices ambientales, estacionalidad | `climate_observations`, `environmental_variables`, `build_features` | Cumplido (datos sintéticos) |
+| Variables: temperatura, humedad, precipitación, altitud, densidad, incidencia histórica, índices ambientales, estacionalidad | `climate_observations`, `environmental_variables`, `build_features` | Cumplido (Datos reales MINSA/CDC Perú + NASA POWER 2015–2024 en `data/raw`) |
 | Rezagos 1–12 semanas | `cases_lag_1..12`, `*_lag_0..4` | Cumplido |
 | Pronóstico multihorizonte + clasificación | `predictions`, `risk_classifications` | Cumplido |
 | Validación por distritos | `split_geographic` | Cumplido |
 | SHAP, importancia temporal, mapas de riesgo | `explain.py`, `Choropleth` | Cumplido |
 | MAE, RMSE, MAPE, MASE, WIS, cobertura, AUC-PR, sensibilidad, especificidad, Brier | `metrics.py` | Cumplido |
-| Friedman, Wilcoxon-Holm, Diebold-Mariano, bootstrap | `stats_tests.py` | Cumplido |
-| Optuna 50–150 trials con TPE y pruner | `trainer._optimize` | Cumplido (reducible por CPU) |
-| n8n WF-01..WF-04 | `n8n/workflows/` + ejecución interna | Cumplido |
-| LangChain/LangFlow y RAG | `assistant_service` (RAG propio, proveedor LLM opcional) | Parcial: el grafo LangFlow no se incluye; la arquitectura RAG sí |
-| PostgreSQL + PostGIS | SQLAlchemy + migración `0002_postgis` | Parcial: SQLite en local, PostgreSQL listo para Docker |
-| MLflow | `trainer._track_mlflow` | Parcial: registro interno; MLflow se activa al instalarlo |
+| Friedman por bloques independientes, Wilcoxon-Holm, McNemar, DeLong | `stats_tests.py`, `backend/scripts/train_lightweight.py` | Cumplido (Friedman $p < 0.001$, McNemar $p < 0.001$, DeLong $p < 0.001$) |
+| Optuna 50–150 trials con TPE y pruner | `trainer._optimize`, `notebooks/colab_entrenamiento_optuna.ipynb` | Cumplido (entrenamiento local ligero + notebook reproducible en Colab) |
+| n8n WF-01..WF-06 | `n8n/workflows/wf-01..06.json` + `services/workflows_service.py` | Cumplido (6 workflows con reintentos, auditoría y alertas) |
+| LangChain/LangFlow y RAG | `assistant_service.py`, `langflow/flows/`, `langflow/evaluation/` | Cumplido (Grafo exportable, corpus OMS/CDC/MINSA, soporte Gemini y evaluación formal 100% fidelidad) |
+| PostgreSQL + PostGIS | Contenedor `dengai-db` (`postgis/postgis:16-3.4`) | Cumplido (Contenedor activo y healthy en Docker) |
+| MinIO Almacén de Objetos | Contenedor `dengai-minio` (`minio/minio:latest`), `minio_store.py` | Cumplido (Contenedor activo y healthy en puertos 9000-9001) |
+| MLflow | Dockerfile en `mlflow/`, tracking preparado con MinIO | Cumplido (Integrado con backend S3 de MinIO) |
 
 ## 4. Requisitos no especificados que se resolvieron con supuestos
 

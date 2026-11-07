@@ -25,10 +25,13 @@ from app.schemas.data import (
     ImportPreview,
     ImportRowErrorOut,
     IntegrationProbeResult,
+    PanelSummary,
     QualitySummary,
+    RealIngestRequest,
+    RealIngestResponse,
 )
 from app.services import audit as audit_service
-from app.services import data_service, dataset_service
+from app.services import data_service, dataset_service, real_data_service
 
 router = APIRouter(tags=["M05 Datos · M06 Pipeline · M16 Reproducibilidad"])
 
@@ -40,9 +43,11 @@ def list_sources(db: Session = Depends(get_db), auth: AuthContext = Depends(requ
 
 @router.post("/data/sources/{code}/probe", response_model=IntegrationProbeResult, summary="Verificar disponibilidad de una fuente")
 def probe_source(code: str, db: Session = Depends(get_db), auth: AuthContext = Depends(require_permissions("data:import"))):
+    from app.integrations.minsa_dengue import probe_minsa_dengue
     from app.integrations.nasa_power import probe_nasa_power
 
-    if code.upper() == "NASA_POWER":
+    normalized = code.upper()
+    if normalized == "NASA_POWER":
         result = probe_nasa_power()
         return IntegrationProbeResult(
             source_code="NASA_POWER",
@@ -51,6 +56,21 @@ def probe_source(code: str, db: Session = Depends(get_db), auth: AuthContext = D
             message=result.get("message", ""),
             latency_ms=result.get("latency_ms"),
             sample=result.get("sample"),
+        )
+    if normalized in {"MINSA_VIGILANCIA", "MINSA_DENGUE"}:
+        result = probe_minsa_dengue()
+        return IntegrationProbeResult(
+            source_code="MINSA_VIGILANCIA",
+            reachable=bool(result.get("reachable")),
+            status="OK" if result.get("reachable") else "UNAVAILABLE",
+            message=result.get("message", ""),
+            latency_ms=result.get("latency_ms"),
+            sample={
+                "status": result.get("status"),
+                "content_length": result.get("content_length"),
+                "content_type": result.get("content_type"),
+                "endpoint": result.get("endpoint"),
+            },
         )
     return IntegrationProbeResult(
         source_code=code.upper(),
@@ -61,6 +81,64 @@ def probe_source(code: str, db: Session = Depends(get_db), auth: AuthContext = D
             "No expone un endpoint público verificado por la plataforma; use la importación manual."
         ),
     )
+
+
+@router.post(
+    "/data/ingest/real",
+    response_model=RealIngestResponse,
+    summary="Ingerir datos reales MINSA/CDC Perú + NASA POWER",
+)
+def ingest_real(
+    payload: RealIngestRequest,
+    db: Session = Depends(get_db),
+    auth: AuthContext = Depends(require_permissions("data:import")),
+    ctx: RequestContext = Depends(get_context),
+):
+    result = real_data_service.ingest_real_data(
+        db,
+        actor=auth.user.email,
+        start_year=payload.start_year,
+        end_year=payload.end_year,
+        district_codes=payload.district_codes,
+        include_cases=payload.include_cases,
+        include_climate=payload.include_climate,
+        force_download=payload.force_download,
+    )
+    audit_service.record(
+        db,
+        event_type=audit_service.AuditEventType.DATA_IMPORT,
+        module="M05",
+        action="ingest_real",
+        result="SUCCESS" if result.get("effective_data_mode") == "real" else "PARTIAL",
+        user_email=auth.user.email,
+        resource_type="real_ingestion",
+        description="Ingesta real MINSA/CDC Perú + NASA POWER.",
+        ip_address=ctx.ip_address,
+        request_id=ctx.request_id,
+        context={
+            "requested": result.get("requested"),
+            "steps": {
+                name: {key: value for key, value in step.items() if key in {"status", "inserted", "updated", "rows_zero_filled"}}
+                for name, step in result.get("steps", {}).items()
+            },
+        },
+    )
+    db.commit()
+    return result
+
+
+@router.get("/data/provenance", summary="Procedencia auditable de los datos (real vs. sintético)")
+def provenance(db: Session = Depends(get_db), auth: AuthContext = Depends(require_permissions("data:read"))):
+    return real_data_service.provenance(db)
+
+
+@router.get("/data/panel", response_model=PanelSummary, summary="Panel distrito-semana que usaría el modelado")
+def panel_summary(
+    mode: Optional[str] = Query(None, pattern="^(auto|synthetic|real)$"),
+    db: Session = Depends(get_db),
+    auth: AuthContext = Depends(require_permissions("data:read")),
+):
+    return real_data_service.panel_summary(db, mode=mode)
 
 
 @router.post("/data/import/preview", response_model=ImportPreview, summary="Previsualizar archivo antes de importar")

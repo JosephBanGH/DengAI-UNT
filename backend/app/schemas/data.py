@@ -151,6 +151,34 @@ class DataDictionaryEntry(BaseModel):
     nullable: bool = True
 
 
+class RealIngestRequest(BaseModel):
+    start_year: Optional[int] = Field(default=None, ge=2000, le=2100)
+    end_year: Optional[int] = Field(default=None, ge=2000, le=2100)
+    district_codes: Optional[List[str]] = None
+    include_cases: bool = True
+    include_climate: bool = True
+    force_download: bool = False
+
+
+class RealIngestResponse(BaseModel):
+    requested: Dict[str, Any]
+    steps: Dict[str, Any]
+    effective_data_mode: str
+    provenance: Dict[str, Any]
+
+
+class PanelSummary(BaseModel):
+    data_mode: str
+    is_synthetic: bool
+    rows: int
+    districts: int
+    weeks: int
+    start_week: Optional[str] = None
+    end_week: Optional[str] = None
+    source_summary: Dict[str, Any] = Field(default_factory=dict)
+    per_district: List[Dict[str, Any]] = Field(default_factory=list)
+
+
 class QualitySummary(BaseModel):
     total_cases: int
     total_climate: int

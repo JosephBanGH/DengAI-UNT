@@ -29,6 +29,9 @@ def _load_predictions(version: ModelVersion) -> Optional[Dict[str, Any]]:
         "target_week": data["target_week"].astype(str),
         "horizon": int((version.feature_names or {}).get("horizon") or 0),
         "algorithm": version.algorithm,
+        "threshold": bundle.get("outbreak_threshold"),
+        "data_mode": bundle.get("data_mode"),
+        "is_synthetic": bundle.get("is_synthetic_data"),
     }
 
 
@@ -50,14 +53,18 @@ def compare(db: Session, *, horizon: int = 1) -> Dict[str, Any]:
     actual = None
     blocks: List[str] = []
     aligned_meta = None
+    threshold: Optional[float] = None
     for algorithm, version in selected.items():
         payload = _load_predictions(version)
         if payload is None:
             continue
         if actual is None:
             actual = payload["y_true"]
-            blocks = [f"{district}|{week}" for district, week in zip(payload["district"], payload["target_week"])]
+            # Bloques independientes: semana objetivo (agrega distritos de la misma
+            # semana). Nunca una observación distrito-semana por bloque.
+            blocks = [str(week) for week in payload["target_week"]]
             aligned_meta = payload
+            threshold = payload.get("threshold")
         if len(payload["y_true"]) != len(actual):
             continue
         predictions[algorithm] = payload["y_pred"]
@@ -65,7 +72,25 @@ def compare(db: Session, *, horizon: int = 1) -> Dict[str, Any]:
     if actual is None or len(predictions) < 2:
         raise ValidationError("No hay predicciones almacenadas comparables para ese horizonte.")
 
-    stats = compare_models(predictions, actual, blocks)
+    binary_actual = None
+    binary_predictions: Dict[str, np.ndarray] = {}
+    if threshold is not None:
+        binary_actual = (np.asarray(actual) >= float(threshold)).astype(int)
+        binary_predictions = {
+            algorithm: (np.asarray(pred) >= float(threshold)).astype(int)
+            for algorithm, pred in predictions.items()
+        }
+    stats = compare_models(
+        predictions,
+        actual,
+        blocks,
+        binary_actual=binary_actual,
+        binary_predictions=binary_predictions,
+        # DeLong solo usa el orden de los puntajes; se documenta que no son
+        # probabilidades calibradas sino el conteo pronosticado como score de riesgo.
+        probabilities=predictions if binary_actual is not None else None,
+        block_unit="target_week",
+    )
 
     rows = []
     ranking = []
@@ -84,7 +109,7 @@ def compare(db: Session, *, horizon: int = 1) -> Dict[str, Any]:
             if algorithm == winner:
                 continue
             dm_tests.append(
-                diebold_mariano(actual, predictions[winner], pred, winner, algorithm)
+                diebold_mariano(actual, predictions[winner], pred, winner, algorithm, blocks=blocks)
             )
 
     basis = (
@@ -103,14 +128,23 @@ def compare(db: Session, *, horizon: int = 1) -> Dict[str, Any]:
     return {
         "rows": rows,
         "ranking": ranking,
-        "tests": [stats.get("friedman", {})] + stats.get("pairwise", []) + dm_tests,
+        "tests": [stats.get("friedman", {})]
+        + stats.get("pairwise", [])
+        + stats.get("mcnemar", [])
+        + stats.get("delong", [])
+        + dm_tests,
+        "blocks": stats.get("blocks"),
+        "block_unit": stats.get("block_unit"),
+        "assumptions": stats.get("assumptions"),
         "winner": winner,
         "winner_basis": basis,
         "horizon": horizon,
         "n_observations": int(len(actual)),
         "caveat": (
             "La comparación utiliza las predicciones almacenadas del conjunto de prueba. "
-            "Un MAE menor no implica superioridad causal; revise significancia y estabilidad temporal."
+            "Las pruebas de Friedman/Wilcoxon agregan pérdidas por semana objetivo como bloque "
+            "independiente. Un MAE menor no implica superioridad causal; revise significancia, "
+            "tamaño del efecto y estabilidad temporal."
         ),
     }
 

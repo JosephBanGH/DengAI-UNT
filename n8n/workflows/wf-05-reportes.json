@@ -1,0 +1,79 @@
+{
+  "name": "WF-05 · Elaboración automática de reportes epidemiológicos y gerenciales",
+  "nodes": [
+    {
+      "parameters": { "rule": { "interval": [{ "field": "cronExpression", "expression": "0 5 * * 1" }] } },
+      "id": "wf05-schedule",
+      "name": "Programación semanal (lunes 05:00)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [220, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.DENGAI_BASE_URL }}/auth/login",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [{ "name": "Content-Type", "value": "application/json" }] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ email: $env.DENGAI_USER, password: $env.DENGAI_PASSWORD }) }}",
+        "options": { "timeout": 30000, "retry": { "retryOnFail": true, "maxTries": 3, "waitBetweenTries": 5000 } }
+      },
+      "id": "wf05-login",
+      "name": "Autenticación",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.DENGAI_BASE_URL }}/workflows/WF-05/run",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $json.access_token }}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "options": { "timeout": 180000, "retry": { "retryOnFail": true, "maxTries": 3, "waitBetweenTries": 10000 } }
+      },
+      "id": "wf05-run",
+      "name": "Generar reporte y archivar en MinIO",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [660, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.DENGAI_BASE_URL }}/reports",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "Authorization", "value": "=Bearer {{ $('Autenticación').item.json.access_token }}" }]
+        },
+        "sendQuery": true,
+        "queryParameters": { "parameters": [{ "name": "size", "value": "5" }] },
+        "options": { "timeout": 60000 }
+      },
+      "id": "wf05-list",
+      "name": "Listar últimos reportes",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [880, 300]
+    }
+  ],
+  "connections": {
+    "Programación semanal (lunes 05:00)": { "main": [[{ "node": "Autenticación", "type": "main", "index": 0 }]] },
+    "Autenticación": { "main": [[{ "node": "Generar reporte y archivar en MinIO", "type": "main", "index": 0 }]] },
+    "Generar reporte y archivar en MinIO": { "main": [[{ "node": "Listar últimos reportes", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1", "saveDataErrorExecution": "all", "saveDataSuccessExecution": "all" },
+  "staticData": null,
+  "meta": {
+    "instanceId": "dengai-sp01",
+    "description": "Genera el reporte epidemiológico semanal consolidado en PDF con SHA-256 y persistencia en MinIO/local."
+  },
+  "tags": [{ "name": "SP-01 Dengue" }, { "name": "WF-05" }]
+}

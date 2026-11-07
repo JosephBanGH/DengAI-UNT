@@ -12,6 +12,7 @@ from app.core.config import settings
 from app.core.deps import AuthContext, get_auth_context, get_db, require_permissions
 from app.core.errors import ConflictError, NotFoundError, ValidationError
 from app.ml.explain import explain_district
+from app.ml.features import resolve_data_mode
 from app.ml.models.registry import algorithm_metadata, get_algorithm, get_search_space
 from app.ml.trainer import is_running, submit_experiment
 from app.ml.reproducibility import torch_info
@@ -80,6 +81,7 @@ def create_experiment(
         raise ValidationError("Debe indicar al menos un horizonte de pronóstico.")
 
     run_id = f"exp-{uuid.uuid4().hex[:12]}"
+    effective_mode = resolve_data_mode(db)
     experiment = Experiment(
         run_id=run_id,
         name=payload.name or f"{meta['name']} · h={payload.horizons}",
@@ -91,10 +93,10 @@ def create_experiment(
         horizons={"values": payload.horizons},
         hyperparameters={},
         search_space=get_search_space(payload.algorithm),
-        feature_config={"max_lag": settings.ML_MAX_LAG},
+        feature_config={"max_lag": settings.ML_MAX_LAG, "data_mode": effective_mode},
         notes=payload.notes,
         created_by=auth.user.email,
-        is_synthetic_data=True,
+        is_synthetic_data=effective_mode == "synthetic",
     )
     db.add(experiment)
     db.commit()

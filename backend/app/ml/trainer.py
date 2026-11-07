@@ -179,13 +179,15 @@ class ExperimentRunner:
                 interval = _residual_quantiles(bundle.y_val, y_val_pred, level=0.9)
                 lower_test = np.clip(y_test_pred + interval["low"], 0, None)
                 upper_test = np.clip(y_test_pred + interval["high"], 0, None)
+                # El umbral de brote se fija con el entrenamiento, nunca con prueba.
+                outbreak_threshold = float(np.quantile(bundle.y_train, 0.9))
                 metrics = evaluate_all(
                     bundle.y_test,
                     y_test_pred,
                     lower=lower_test,
                     upper=upper_test,
                     y_insample=bundle.y_train[-120:],
-                    outbreak_threshold=float(np.quantile(bundle.y_train, 0.9)),
+                    outbreak_threshold=outbreak_threshold,
                     interval_level=0.9,
                 )
                 horizon_metrics[str(horizon)] = {
@@ -234,12 +236,30 @@ class ExperimentRunner:
                     "district_grid": bundle.notes.get("district_grid"),
                     "sequence_window": bundle.notes.get("sequence_window", 12),
                     "interval": interval,
+                    "outbreak_threshold": outbreak_threshold,
+                    "data_mode": panel.data_mode,
+                    "source_summary": panel.source_summary,
                     "trained_at": utcnow().isoformat(),
                     "is_synthetic_data": bundle.is_synthetic,
                     "predictions_path": pred_path,
                 }
                 version = f"h{int(horizon)}-{run_id[:8]}"
                 path, checksum = save_bundle(algorithm, version, artifact_payload)
+                from app.integrations import minio_store
+
+                minio_info = minio_store.upload_file(
+                    path, object_name=f"models/{algorithm}/{version}.joblib"
+                )
+                pred_minio = minio_store.upload_file(
+                    pred_path, object_name=f"predictions/{Path(pred_path).name}"
+                )
+                horizon_metrics[str(horizon)]["artifact_path"] = path
+                horizon_metrics[str(horizon)]["artifact_checksum"] = checksum
+                horizon_metrics[str(horizon)]["predictions_path"] = pred_path
+                horizon_metrics[str(horizon)]["minio"] = {
+                    "model": minio_info,
+                    "predictions": pred_minio,
+                }
 
                 with _scope() as db:
                     db.add(
@@ -283,7 +303,15 @@ class ExperimentRunner:
                     context={"algorithm": algorithm, "horizons": horizons, "n_trials": n_trials},
                 )
 
-            self._track_mlflow(algorithm, horizon_metrics, best_params_per_horizon, n_trials)
+            self._track_mlflow(
+                algorithm,
+                horizon_metrics,
+                best_params_per_horizon,
+                n_trials,
+                is_synthetic=panel.is_synthetic,
+                data_mode=panel.data_mode,
+                source_summary=panel.source_summary,
+            )
         except Exception as exc:  # pragma: no cover - se reporta al usuario
             logger.exception("Fallo el experimento %s", self.experiment_id)
             with _scope() as db:
@@ -358,7 +386,17 @@ class ExperimentRunner:
         study.optimize(objective, n_trials=n_trials, callbacks=[_callback], show_progress_bar=False)
         return dict(study.best_params)
 
-    def _track_mlflow(self, algorithm: str, metrics: Dict[str, Any], params: Dict[str, Any], n_trials: int) -> None:
+    def _track_mlflow(
+        self,
+        algorithm: str,
+        metrics: Dict[str, Any],
+        params: Dict[str, Any],
+        n_trials: int,
+        *,
+        is_synthetic: bool = True,
+        data_mode: str = "synthetic",
+        source_summary: Optional[Dict[str, Any]] = None,
+    ) -> None:
         """Registra el experimento en MLflow si está instalado; si no, deja constancia."""
         from app.db.session import session_scope
         from app.models.ml import Experiment
@@ -378,8 +416,17 @@ class ExperimentRunner:
                     for name, value in payload.get("metrics", {}).items():
                         if value is not None:
                             mlflow.log_metric(f"h{horizon}_{name}", float(value))
-                mlflow.set_tag("data", "synthetic" if True else "real")
+                    for key in ("artifact_path", "predictions_path"):
+                        candidate = payload.get(key)
+                        if candidate and Path(candidate).exists():
+                            mlflow.log_artifact(candidate, artifact_path=f"h{horizon}")
+                mlflow.set_tag("data", "synthetic" if is_synthetic else "real")
+                mlflow.set_tag("data_mode", data_mode)
                 mlflow.set_tag("platform", settings.APP_SHORT_NAME)
+                if source_summary:
+                    mlflow.log_param("n_cases", source_summary.get("case_rows", 0))
+                    mlflow.log_param("n_districts", source_summary.get("districts", 0))
+                    mlflow.log_param("n_weeks", source_summary.get("weeks", 0))
                 run_id = run.info.run_id
             with session_scope() as db:
                 exp = db.get(Experiment, self.experiment_id)

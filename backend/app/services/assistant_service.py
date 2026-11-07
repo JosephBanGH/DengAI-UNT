@@ -89,10 +89,34 @@ def _corpus(db: Session) -> List[Document]:
         ),
         Document(
             "limitaciones", "Limitaciones y supuestos", "Datos",
-            "La demostración usa datos sintéticos por distrito-semana de La Libertad. Las integraciones con "
-            "MINSA, CDC y WHO quedan preparadas mediante adaptadores y variables de entorno; su activación "
-            "requiere credenciales o archivos autorizados. La geometría de los distritos es una teselación "
-            "de Voronoi, no la cartografía oficial, hasta que se cargue el shapefile correspondiente.",
+            "La plataforma opera con datos reales de MINSA/CDC Perú y NASA POWER (2015-2024), con "
+            "opción de respaldo sintético para pruebas locales. Las predicciones son generadas exclusivamente "
+            "por los modelos numéricos de IA y el asistente actúa solo como interfaz de consulta.",
+        ),
+        Document(
+            "oms_clinica", "Guía OMS/OPS para el Diagnóstico y Manejo Clínico del Dengue", "Clasificación clínica",
+            "La OMS clasifica el dengue en tres categorías: 1) Dengue sin signos de alarma (fiebre, cefalea, "
+            "dolor retroocular, mialgias, artralgias y exantema). 2) Dengue con signos de alarma (dolor abdominal "
+            "intenso y continuo, vómitos persistentes, acumulación de líquidos, sangrado de mucosas, letargo e "
+            "incremento del hematocrito concomitante con disminución rápida de plaquetas). 3) Dengue grave "
+            "(choque hipovolémico por extravasación grave de plasma, dificultad respiratoria, hemorragias graves "
+            "o daño orgánico grave en hígado, SNC o corazón).",
+        ),
+        Document(
+            "minsa_norma", "Norma Técnica de Vigilancia Epidemiológica de Dengue (CDC Perú / MINSA)", "Definición de casos y alerta",
+            "MINSA establece: Caso Probable: persona con fiebre aguda más dos o más manifestaciones (cefalea, "
+            "mialgias, artralgias, dolor retroocular, náuseas) con antecedente epidemiológico en zona de transmisión. "
+            "Caso Confirmado: caso probable con prueba de laboratorio positiva (aislamiento viral, RT-PCR, detección "
+            "del antígeno NS1 antes del 5to día de fiebre, o serología ELISA IgM después del 5to día). Se define alerta "
+            "de brote cuando la incidencia supera el límite superior del canal endémico cuartilar en distritos endémicos.",
+        ),
+        Document(
+            "cdc_ecologia", "Directrices CDC sobre Biología del Vector y Transmisión de Dengue", "Ecología del vector",
+            "El vector principal es Aedes aegypti. La temperatura óptima para su ciclo biológico y replicación viral "
+            "oscila entre 26°C y 28°C. A temperaturas inferiores a 15°C o superiores a 38°C se inhibe la transmisión. "
+            "El Período de Incubación Extrínseca (PIE) en el mosquito varía de 8 a 14 días y se acorta a mayor temperatura. "
+            "Las precipitaciones generan criaderos y la humedad relativa alta (>70%) prolonga la longevidad del mosquito, "
+            "explicando los rezagos de 4 a 12 semanas (lags) entre eventos climáticos y picos de casos.",
         ),
     ]
     documents.append(
@@ -121,13 +145,23 @@ def _retrieve(documents: List[Document], question: str, top_k: int) -> List[Tupl
     from sklearn.feature_extraction.text import TfidfVectorizer
     from sklearn.metrics.pairwise import cosine_similarity
 
+    spanish_stopwords = [
+        "de", "la", "que", "el", "en", "y", "a", "los", "del", "se", "las", "por", "un", "para", "con", "no", "una",
+        "su", "al", "lo", "como", "más", "pero", "sus", "le", "ya", "o", "este", "sí", "porque", "esta", "entre",
+        "cuando", "muy", "sin", "sobre", "también", "me", "hasta", "hay", "donde", "quien", "desde", "todo", "nos",
+        "durante", "todos", "uno", "les", "ni", "contra", "otros", "ese", "eso", "ante", "ellos", "e", "esto", "mí",
+        "antes", "algunos", "qué", "unos", "yo", "otro", "otras", "otra", "él", "tanto", "esa", "estos", "mucho",
+        "quienes", "nada", "muchos", "cual", "poco", "ella", "estar", "estas", "algunas", "algo", "nosotros", "cuál",
+        "cómo", "cuáles", "dónde", "quién"
+    ]
     corpus = [f"{doc.title}. {doc.section}. {doc.text}" for doc in documents]
-    vectorizer = TfidfVectorizer(lowercase=True, ngram_range=(1, 2), sublinear_tf=True)
+    vectorizer = TfidfVectorizer(lowercase=True, ngram_range=(1, 2), sublinear_tf=True, stop_words=spanish_stopwords)
     matrix = vectorizer.fit_transform(corpus)
     query = vectorizer.transform([question])
     scores = cosine_similarity(query, matrix).ravel()
     order = np.argsort(-scores)[:top_k]
-    return [(documents[index], float(scores[index])) for index in order if scores[index] > 0]
+    # Umbral mínimo de relevancia: si la similitud no supera 0.08, se considera fuera de dominio y se abstiene
+    return [(documents[index], float(scores[index])) for index in order if scores[index] >= 0.08]
 
 
 def _live_facts(db: Session, district_code: Optional[str]) -> Dict[str, Any]:
@@ -281,10 +315,12 @@ def _compose(question: str, retrieved: List[Tuple[Document, float]], facts: Dict
         body.append(f"Actualmente hay {facts['open_alerts']} alertas abiertas.")
     base_answer = " ".join(body)
 
-    if settings.LLM_PROVIDER == "openai_compatible" and settings.LLM_API_KEY:
+    active_key = settings.GEMINI_API_KEY or settings.LLM_API_KEY
+    if settings.LLM_PROVIDER in ("openai_compatible", "gemini") and active_key:
         refined = _llm_refine(question, base_answer, facts)
         if refined:
-            return refined, f"openai_compatible:{settings.LLM_MODEL}"
+            model_tag = "gemini-1.5-flash" if settings.LLM_PROVIDER == "gemini" else settings.LLM_MODEL
+            return refined, f"{settings.LLM_PROVIDER}:{model_tag}"
     return base_answer, settings.LLM_PROVIDER
 
 
@@ -295,13 +331,21 @@ def _llm_refine(question: str, base_answer: str, facts: Dict[str, Any]) -> Optio
 
         prompt = (
             "Eres un asistente de vigilancia epidemiológica. Reescribe la respuesta usando SOLO los hechos "
-            "proporcionados. No inventes cifras. Si falta información, dilo.\n\n"
+            "proporcionados. No inventes cifras ni porcentajes. Si falta información, dilo explícitamente.\n\n"
             f"HECHOS:\n{base_answer}\n\nPREGUNTA: {question}\nRESPUESTA:"
         )
+        api_key = settings.GEMINI_API_KEY or settings.LLM_API_KEY
+        if settings.LLM_PROVIDER == "gemini":
+            url = f"https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
+            model = "gemini-1.5-flash"
+        else:
+            url = f"{settings.LLM_BASE_URL.rstrip('/')}/chat/completions"
+            model = settings.LLM_MODEL
+
         response = httpx.post(
-            f"{settings.LLM_BASE_URL.rstrip('/')}/chat/completions",
-            headers={"Authorization": f"Bearer {settings.LLM_API_KEY}"},
-            json={"model": settings.LLM_MODEL, "messages": [{"role": "user", "content": prompt}], "temperature": 0.1},
+            url,
+            headers={"Authorization": f"Bearer {api_key}"},
+            json={"model": model, "messages": [{"role": "user", "content": prompt}], "temperature": 0.1},
             timeout=settings.LLM_TIMEOUT,
         )
         response.raise_for_status()

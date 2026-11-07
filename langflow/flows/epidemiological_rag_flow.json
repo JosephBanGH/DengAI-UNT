@@ -1,0 +1,89 @@
+{
+  "name": "SP01 Epidemiological Assistant & Surveillance RAG",
+  "description": "Flujo visual LangFlow para asistencia en vigilancia epidemiológica de dengue con RAG sobre OMS/CDC/MINSA y restricción epistémica.",
+  "data": {
+    "nodes": [
+      {
+        "id": "chat-input-1",
+        "type": "ChatInput",
+        "position": { "x": 100, "y": 200 },
+        "data": {
+          "node": {
+            "template": {
+              "input_value": { "type": "str", "value": "¿Cuáles son los signos de alarma del dengue según la OMS?" }
+            }
+          }
+        }
+      },
+      {
+        "id": "prompt-guardrail-1",
+        "type": "PromptTemplate",
+        "position": { "x": 350, "y": 200 },
+        "data": {
+          "node": {
+            "template": {
+              "template": {
+                "type": "str",
+                "value": "Eres un asistente de vigilancia epidemiológica para DengAI-UNT. Responde únicamente basándote en los documentos oficiales recuperados (OMS, CDC, MINSA) y en los hechos reales de la base de datos. NUNCA inventes pronósticos numéricos, casos ni porcentajes no sustentados. Si la pregunta no guarda relación o carece de sustento en el corpus, declara abstención educadamente.\n\nDOCUMENTOS RECUPERADOS:\n{context}\n\nHECHOS DEL SISTEMA:\n{facts}\n\nPREGUNTA DEL USUARIO:\n{question}\n\nRESPUESTA VERIFICABLE:"
+              }
+            }
+          }
+        }
+      },
+      {
+        "id": "retriever-1",
+        "type": "CustomComponent",
+        "position": { "x": 100, "y": 450 },
+        "data": {
+          "node": {
+            "name": "CorpusRetriever",
+            "description": "Recuperador híbrido TF-IDF/BM25 sobre guías clínicas OMS, directrices CDC y norma técnica MINSA."
+          }
+        }
+      },
+      {
+        "id": "llm-gemini-1",
+        "type": "GoogleGenerativeAI",
+        "position": { "x": 650, "y": 250 },
+        "data": {
+          "node": {
+            "name": "Gemini 1.5 Flash / OpenAI-Compatible",
+            "template": {
+              "model_name": { "type": "str", "value": "gemini-1.5-flash" },
+              "temperature": { "type": "float", "value": 0.1 },
+              "max_output_tokens": { "type": "int", "value": 800 }
+            }
+          }
+        }
+      },
+      {
+        "id": "guardrail-validator-1",
+        "type": "CustomComponent",
+        "position": { "x": 900, "y": 250 },
+        "data": {
+          "node": {
+            "name": "EpistemicFactChecker",
+            "description": "Verifica que toda cifra citada exista en el contexto y rechaza alucinaciones o cifras numéricas no sustentadas."
+          }
+        }
+      },
+      {
+        "id": "chat-output-1",
+        "type": "ChatOutput",
+        "position": { "x": 1150, "y": 250 },
+        "data": {
+          "node": {
+            "name": "Respuesta Epidemiológica Verificada con Citas"
+          }
+        }
+      }
+    ],
+    "edges": [
+      { "source": "chat-input-1", "target": "prompt-guardrail-1", "sourceHandle": "message", "targetHandle": "question" },
+      { "source": "retriever-1", "target": "prompt-guardrail-1", "sourceHandle": "documents", "targetHandle": "context" },
+      { "source": "prompt-guardrail-1", "target": "llm-gemini-1", "sourceHandle": "prompt", "targetHandle": "input" },
+      { "source": "llm-gemini-1", "target": "guardrail-validator-1", "sourceHandle": "text", "targetHandle": "candidate_text" },
+      { "source": "guardrail-validator-1", "target": "chat-output-1", "sourceHandle": "validated_text", "targetHandle": "message" }
+    ]
+  }
+}

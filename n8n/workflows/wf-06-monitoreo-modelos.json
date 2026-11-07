@@ -1,0 +1,95 @@
+{
+  "name": "WF-06 · Auditoría, monitoreo y evaluación de rendimiento de modelos (drift)",
+  "nodes": [
+    {
+      "parameters": { "rule": { "interval": [{ "field": "cronExpression", "expression": "30 5 * * 1" }] } },
+      "id": "wf06-schedule",
+      "name": "Programación semanal (lunes 05:30)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [220, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.DENGAI_BASE_URL }}/auth/login",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [{ "name": "Content-Type", "value": "application/json" }] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ email: $env.DENGAI_USER, password: $env.DENGAI_PASSWORD }) }}",
+        "options": { "timeout": 30000, "retry": { "retryOnFail": true, "maxTries": 3, "waitBetweenTries": 5000 } }
+      },
+      "id": "wf06-login",
+      "name": "Autenticación",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.DENGAI_BASE_URL }}/workflows/WF-06/run",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $json.access_token }}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "options": { "timeout": 120000, "retry": { "retryOnFail": true, "maxTries": 3, "waitBetweenTries": 10000 } }
+      },
+      "id": "wf06-run",
+      "name": "Evaluar data drift y degradación en FastAPI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [660, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.output.status }}",
+              "value2": "DRIFT_DETECTED"
+            }
+          ]
+        }
+      },
+      "id": "wf06-check-drift",
+      "name": "¿Se detectó drift?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [880, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.DENGAI_ALERT_WEBHOOK }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ canal: 'n8n_drift_monitor', alerta: 'DRIFT_DETECTED', detalle: $json.output }) }}",
+        "options": { "timeout": 30000 }
+      },
+      "id": "wf06-notify-drift",
+      "name": "Alerta a equipo de ML",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1100, 200],
+      "notes": "Notifica si hay anomalías severas en clima o degradación de métricas de predicción."
+    }
+  ],
+  "connections": {
+    "Programación semanal (lunes 05:30)": { "main": [[{ "node": "Autenticación", "type": "main", "index": 0 }]] },
+    "Autenticación": { "main": [[{ "node": "Evaluar data drift y degradación en FastAPI", "type": "main", "index": 0 }]] },
+    "Evaluar data drift y degradación en FastAPI": { "main": [[{ "node": "¿Se detectó drift?", "type": "main", "index": 0 }]] },
+    "¿Se detectó drift?": { "main": [[{ "node": "Alerta a equipo de ML", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1", "saveDataErrorExecution": "all", "saveDataSuccessExecution": "all" },
+  "staticData": null,
+  "meta": {
+    "instanceId": "dengai-sp01",
+    "description": "Monitoreo semanal de degradación de modelos, data drift climático y registro auditable en DataQualityRecord."
+  },
+  "tags": [{ "name": "SP-01 Dengue" }, { "name": "WF-06" }]
+}

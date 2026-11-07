@@ -70,12 +70,45 @@ class Settings(BaseSettings):
     MLFLOW_ENABLED: bool = False
 
     # --- Datos externos ---
-    NASA_POWER_BASE_URL: str = "https://power.larc.nasa.gov/api/temporal/weekly/point"
-    NASA_POWER_TIMEOUT: float = 20.0
+    # NASA POWER no expone un endpoint semanal: se descarga la serie diaria y se
+    # agrega a semanas ISO en app/integrations/nasa_power.py.
+    NASA_POWER_BASE_URL: str = "https://power.larc.nasa.gov/api/temporal/daily/point"
+    NASA_POWER_TIMEOUT: float = 45.0
+    NASA_POWER_START_YEAR: int = 2015
+    # 2024 es el último año completo en la fuente MINSA (2025 está parcial).
+    NASA_POWER_END_YEAR: int = 2024
     LIVE_INTEGRATIONS_ENABLED: bool = False
 
+    # MINSA/CDC Perú · datos abiertos de vigilancia de dengue (microdatos por caso).
+    MINSA_DENGUE_URL: str = (
+        "https://www.datosabiertos.gob.pe/sites/default/files/"
+        "datos_abiertos_vigilancia_dengue_2000_2025_0.csv"
+    )
+    MINSA_START_YEAR: int = 2015
+    # 2025 se excluye por defecto: el CSV oficial aún está parcial y sesgaría el
+    # conjunto de prueba temporal.
+    MINSA_END_YEAR: int = 2024
+    RAW_DATA_DIR: str = "data/raw"
+
+    # Modo de datos del pipeline: auto usa datos reales si existen; synthetic fuerza
+    # el conjunto de demostración; real exige datos reales.
+    DATA_MODE: Literal["auto", "synthetic", "real"] = "auto"
+
+    # --- Almacenamiento de objetos (MinIO) ---
+    MINIO_ENABLED: bool = False
+    MINIO_ENDPOINT: str = "localhost:9000"
+    MINIO_ACCESS_KEY: str = "dengai"
+    MINIO_SECRET_KEY: str = "dengai-minio"
+    MINIO_BUCKET: str = "dengai"
+    MINIO_SECURE: bool = False
+
+    # --- MLflow ---
+    MLFLOW_EXPERIMENT_NAME: str = "SP01-Dengue-Intelligence"
+    MLFLOW_ARTIFACT_LOCATION: str = ""
+
     # --- Capa de lenguaje (RAG / explicaciones) ---
-    LLM_PROVIDER: Literal["grounded_template", "openai_compatible"] = "grounded_template"
+    LLM_PROVIDER: Literal["grounded_template", "openai_compatible", "gemini"] = "grounded_template"
+    GEMINI_API_KEY: str = ""
     LLM_BASE_URL: str = "https://api.openai.com/v1"
     LLM_API_KEY: str = ""
     LLM_MODEL: str = "gpt-4o-mini"
@@ -122,6 +155,12 @@ class Settings(BaseSettings):
     @property
     def data_dir(self) -> Path:
         path = self.models_dir.parent
+        path.mkdir(parents=True, exist_ok=True)
+        return path
+
+    @property
+    def raw_dir(self) -> Path:
+        path = PROJECT_DIR / self.RAW_DATA_DIR
         path.mkdir(parents=True, exist_ok=True)
         return path
 

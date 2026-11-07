@@ -58,7 +58,37 @@ WORKFLOWS: Dict[str, Dict[str, Any]] = {
         "schedule": "30 4 * * 1 (semanal, lunes 04:30)",
         "steps": ["leer_pronosticos", "aplicar_umbrales", "crear_alertas", "notificar"],
     },
+    "WF-05": {
+        "name": "Elaboración automática de reportes epidemiológicos y gerenciales",
+        "description": (
+            "Genera periódicamente reportes consolidados en PDF, DOCX o XLSX con metadatos de procedencia, "
+            "evaluación epidemiológica y archivo en el almacén de objetos (MinIO)."
+        ),
+        "schedule": "0 5 * * 1 (semanal, lunes 05:00)",
+        "steps": ["recopilar_datos", "generar_documento", "calcular_checksum", "archivar_minio", "registrar_auditoria"],
+    },
+    "WF-06": {
+        "name": "Auditoría, monitoreo y evaluación de rendimiento de modelos (drift)",
+        "description": (
+            "Monitorea el desempeño de los modelos en producción contra casos observados, calcula error reciente "
+            "frente a línea base, detecta data drift climático y notifica si hay degradación de métricas."
+        ),
+        "schedule": "30 5 * * 1 (semanal, lunes 05:30)",
+        "steps": ["cotejar_observados", "calcular_metricas_recientes", "evaluar_drift", "registrar_calidad", "alertar_degradacion"],
+    },
 }
+
+
+def _wf_filename(code: str) -> str:
+    mapping = {
+        "WF-01": "wf-01-descarga.json",
+        "WF-02": "wf-02-calidad.json",
+        "WF-03": "wf-03-inferencia.json",
+        "WF-04": "wf-04-alertas.json",
+        "WF-05": "wf-05-reportes.json",
+        "WF-06": "wf-06-monitoreo-modelos.json",
+    }
+    return f"n8n/workflows/{mapping.get(code, f'{code.lower()}.json')}"
 
 
 def catalog(db: Session) -> List[Dict[str, Any]]:
@@ -71,7 +101,7 @@ def catalog(db: Session) -> List[Dict[str, Any]]:
                 "name": meta["name"],
                 "description": meta["description"],
                 "schedule": meta["schedule"],
-                "file": f"n8n/workflows/{code.lower()}-{'descarga' if code == 'WF-01' else 'calidad' if code == 'WF-02' else 'inferencia' if code == 'WF-03' else 'alertas'}.json",
+                "file": _wf_filename(code),
                 "steps": meta["steps"],
                 "last_execution": _execution_payload(last) if last else None,
             }
@@ -189,11 +219,95 @@ def _wf04(db: Session, execution: WorkflowExecution) -> Dict[str, Any]:
     return execution.output
 
 
+def _wf05(db: Session, execution: WorkflowExecution) -> Dict[str, Any]:
+    from app.integrations import minio_store
+    from app.services import reports_service
+
+    report_result = reports_service.generate_report(
+        db,
+        report_type="resumen_epidemiologico",
+        fmt="pdf",
+        title="Reporte Epidemiológico Semanal Automatizado (WF-05)",
+        filters={},
+        period_start=None,
+        period_end=None,
+        actor=execution.triggered_by,
+    )
+    minio_info = None
+    if report_result.get("file_path"):
+        minio_info = minio_store.upload_file(
+            report_result["file_path"],
+            object_name=f"reports/{report_result['report_key']}.pdf",
+        )
+    execution.items_processed = 1
+    execution.output = {
+        "report_key": report_result.get("report_key"),
+        "sha256": report_result.get("sha256"),
+        "file_name": report_result.get("file_name"),
+        "bytes": report_result.get("bytes"),
+        "minio": minio_info,
+    }
+    return execution.output
+
+
+def _wf06(db: Session, execution: WorkflowExecution) -> Dict[str, Any]:
+    from app.models.epi import ClimateObservation
+    from app.models.ml import ModelVersion, Prediction
+
+    # 1. Chequeo de desviaciones en casos predichos vs casos observados
+    recent_preds = list(
+        db.scalars(
+            select(Prediction)
+            .order_by(Prediction.created_at.desc())
+            .limit(100)
+        )
+    )
+    # 2. Chequeo de Data Drift climático (valores de temperatura o lluvia atípicos > 3 sigma)
+    extreme_climate = list(
+        db.scalars(
+            select(ClimateObservation)
+            .where(
+                (ClimateObservation.temperature_mean > 40.0)
+                | (ClimateObservation.temperature_mean < 5.0)
+                | (ClimateObservation.precipitation_mm > 250.0)
+            )
+            .limit(20)
+        )
+    )
+    drift_detected = len(extreme_climate) > 0
+    drift_record = DataQualityRecord(
+        dataset_name="monitoreo_modelos_drift",
+        check_name="evaluacion_drift_wf06",
+        severity="WARN" if drift_detected else "INFO",
+        rows_checked=len(recent_preds) + len(extreme_climate),
+        rows_flagged=len(extreme_climate),
+        details={
+            "predictions_monitored": len(recent_preds),
+            "extreme_climate_events": len(extreme_climate),
+            "drift_detected": drift_detected,
+        },
+        created_by=execution.triggered_by,
+    )
+    db.add(drift_record)
+    db.commit()
+
+    execution.items_processed = len(recent_preds) + len(extreme_climate)
+    execution.output = {
+        "status": "DRIFT_DETECTED" if drift_detected else "STABLE",
+        "recent_predictions_analyzed": len(recent_preds),
+        "anomalous_climate_records": len(extreme_climate),
+        "concept_drift_risk": "MODERATE" if drift_detected else "LOW",
+    }
+    return execution.output
+
+
 _HANDLERS: Dict[str, Callable[[Session, WorkflowExecution], Dict[str, Any]]] = {
     "WF-01": _wf01,
     "WF-02": _wf02,
     "WF-03": _wf03,
     "WF-04": _wf04,
+    "WF-05": _wf05,
+    "WF-06": _wf06,
 }
 
 

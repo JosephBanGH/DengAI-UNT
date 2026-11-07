@@ -17,6 +17,10 @@ python-docx==1.2.0
 openpyxl==3.1.5
 lxml==6.0.2
 
+# Registro de experimentos y almacenamiento de artefactos (opcionales en local).
+mlflow-skinny==3.1.4
+minio==7.2.20
+
 # Ciencia de datos y machine learning
 numpy==2.2.6
 pandas==2.3.3

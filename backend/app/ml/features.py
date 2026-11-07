@@ -18,6 +18,7 @@ import pandas as pd
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.models.epi import ClimateObservation, DengueCase, EnvironmentalVariable
 from app.models.geo import GeographicUnit
 
@@ -33,6 +34,7 @@ class PanelResult:
     weeks: List[date]
     is_synthetic: bool
     source_summary: Dict[str, object] = field(default_factory=dict)
+    data_mode: str = "synthetic"
 
 
 @dataclass
@@ -75,11 +77,60 @@ class DatasetBundle:
         }
 
 
-def load_panel(db: Session, *, only_synthetic: Optional[bool] = None) -> PanelResult:
-    """Carga casos + clima en formato largo (una fila por distrito-semana)."""
-    case_stmt = select(DengueCase)
+def _has_real_cases(db: Session) -> bool:
+    return db.scalar(select(DengueCase.id).where(DengueCase.is_synthetic.is_(False)).limit(1)) is not None
+
+
+def _has_real_climate(db: Session) -> bool:
+    return (
+        db.scalar(select(ClimateObservation.id).where(ClimateObservation.is_synthetic.is_(False)).limit(1))
+        is not None
+    )
+
+
+def resolve_data_mode(db: Session, *, only_synthetic: Optional[bool] = None, mode: Optional[str] = None) -> str:
+    """Resuelve el modo efectivo: ``real`` o ``synthetic``.
+
+    ``auto`` (valor por defecto) usa datos reales solo si existen **casos y clima**
+    reales; de lo contrario recurre al conjunto sintético. Los modos explícitos
+    nunca mezclan ambos orígenes y fallan si falta la cobertura mínima.
+    """
     if only_synthetic is not None:
-        case_stmt = case_stmt.where(DengueCase.is_synthetic == only_synthetic)
+        return "synthetic" if only_synthetic else "real"
+    requested = (mode or settings.DATA_MODE or "auto").lower()
+    if requested == "synthetic":
+        return "synthetic"
+    if requested == "real":
+        if not _has_real_cases(db):
+            raise ValueError(
+                "DATA_MODE=real pero no hay casos reales en la base de datos. "
+                "Ejecute la ingesta real (MINSA + NASA POWER) o use DATA_MODE=auto."
+            )
+        if not _has_real_climate(db):
+            raise ValueError(
+                "DATA_MODE=real pero no hay clima real (NASA POWER). "
+                "Ejecute la ingesta climática o use DATA_MODE=auto."
+            )
+        return "real"
+    if requested != "auto":
+        raise ValueError(f"DATA_MODE inválido: {requested!r}. Use auto, synthetic o real.")
+    return "real" if (_has_real_cases(db) and _has_real_climate(db)) else "synthetic"
+
+
+def load_panel(
+    db: Session,
+    *,
+    only_synthetic: Optional[bool] = None,
+    mode: Optional[str] = None,
+) -> PanelResult:
+    """Carga casos + clima en formato largo (una fila por distrito-semana).
+
+    El origen se elige de forma homogénea: nunca se mezclan filas reales y
+    sintéticas en el mismo panel, para no contaminar métricas ni conclusiones.
+    """
+    data_mode = resolve_data_mode(db, only_synthetic=only_synthetic, mode=mode)
+    use_synthetic = data_mode == "synthetic"
+    case_stmt = select(DengueCase).where(DengueCase.is_synthetic == use_synthetic)
     cases = pd.DataFrame(
         [
             {
@@ -96,7 +147,8 @@ def load_panel(db: Session, *, only_synthetic: Optional[bool] = None) -> PanelRe
     )
     if cases.empty:
         raise ValueError(
-            "No hay datos de casos cargados. Importe un archivo o ejecute el poblado sintético."
+            f"No hay datos de casos {'reales' if data_mode == 'real' else 'sintéticos'} cargados. "
+            "Importe un archivo o ejecute el poblado/ingesta correspondiente."
         )
 
     climate = pd.DataFrame(
@@ -113,7 +165,9 @@ def load_panel(db: Session, *, only_synthetic: Optional[bool] = None) -> PanelRe
                 "solar_radiation": row.solar_radiation,
                 "is_synthetic": row.is_synthetic,
             }
-            for row in db.scalars(select(ClimateObservation))
+            for row in db.scalars(
+                select(ClimateObservation).where(ClimateObservation.is_synthetic == use_synthetic)
+            )
         ]
     )
 
@@ -147,7 +201,12 @@ def load_panel(db: Session, *, only_synthetic: Optional[bool] = None) -> PanelRe
                 "name": row.name,
                 "value": row.value,
             }
-            for row in db.scalars(select(EnvironmentalVariable).where(EnvironmentalVariable.name == "population_density"))
+            for row in db.scalars(
+                select(EnvironmentalVariable).where(
+                    EnvironmentalVariable.name == "population_density",
+                    EnvironmentalVariable.is_synthetic == use_synthetic,
+                )
+            )
         ]
     )
     if not env.empty:
@@ -168,14 +227,22 @@ def load_panel(db: Session, *, only_synthetic: Optional[bool] = None) -> PanelRe
     ]
     panel[numeric_cols] = panel.groupby("district_code")[numeric_cols].ffill().bfill()
 
-    is_synthetic = bool(panel["is_synthetic"].fillna(False).astype(bool).all())
+    if panel["is_synthetic"].fillna(False).astype(bool).nunique() > 1:
+        raise ValueError("El panel contiene una mezcla de filas reales y sintéticas; revise la ingesta.")
+    is_synthetic = use_synthetic
     districts = sorted(panel["district_code"].unique().tolist())
     weeks = sorted(panel["week_start"].unique().tolist())
     source_summary = {
+        "data_mode": data_mode,
         "case_rows": int(len(cases)),
         "climate_rows": int(len(climate)),
         "synthetic_rows": int(panel["is_synthetic"].fillna(False).astype(bool).sum()),
+        "real_rows": int((~panel["is_synthetic"].fillna(False).astype(bool)).sum()),
         "missing_climate_pct": round(float(panel[numeric_cols].isna().any(axis=1).mean() * 100), 3),
+        "districts": len(districts),
+        "weeks": len(weeks),
+        "start_week": str(pd.Timestamp(weeks[0]).date()) if weeks else None,
+        "end_week": str(pd.Timestamp(weeks[-1]).date()) if weeks else None,
     }
     return PanelResult(
         panel=panel,
@@ -184,6 +251,7 @@ def load_panel(db: Session, *, only_synthetic: Optional[bool] = None) -> PanelRe
         weeks=weeks,
         is_synthetic=is_synthetic,
         source_summary=source_summary,
+        data_mode=data_mode,
     )
 
 
@@ -288,16 +356,95 @@ def split_temporal(
         )
     test_start = origin_weeks[-test_weeks]
     val_start = origin_weeks[-(test_weeks + validation_weeks)]
-    train = frame[frame["origin_week"] < val_start]
-    val = frame[(frame["origin_week"] >= val_start) & (frame["origin_week"] < test_start)]
+    # Sin fuga temporal: el objetivo de una fila de entrenamiento no puede caer en
+    # el periodo de validación, ni el de validación en el periodo de prueba.
+    train = frame[(frame["origin_week"] < val_start) & (frame["target_week"] < val_start)]
+    val = frame[
+        (frame["origin_week"] >= val_start)
+        & (frame["origin_week"] < test_start)
+        & (frame["target_week"] < test_start)
+    ]
     test = frame[frame["origin_week"] >= test_start]
     notes = {
         "train_end": str(pd.Timestamp(val_start).date()),
+        "train_target_end": str(pd.Timestamp(train["target_week"].max()).date()) if len(train) else None,
         "val_range": [str(pd.Timestamp(val_start).date()), str(pd.Timestamp(test_start).date())],
+        "val_target_end": str(pd.Timestamp(val["target_week"].max()).date()) if len(val) else None,
         "test_start": str(pd.Timestamp(test_start).date()),
-        "strategy": "temporal",
+        "strategy": "temporal_walk_forward",
     }
     return train, val, test, notes
+
+
+def walk_forward_folds(
+    frame: pd.DataFrame,
+    *,
+    n_folds: int = 5,
+    validation_weeks: int = 13,
+    test_weeks: int = 26,
+    horizon: int = 1,
+) -> List[Dict[str, object]]:
+    """Folds walk-forward con ventana expansiva y un bloque de prueba final intocable.
+
+    Cada fold cumple ``max(target_week del train) < min(origin_week de validación)``:
+    no hay solapamiento de objetivos entre entrenamiento y validación. El bloque de
+    prueba final nunca se usa para seleccionar hiperparámetros ni para construir folds.
+    """
+    frame = frame.dropna(subset=["target"]).copy()
+    weeks = sorted(frame["origin_week"].unique())
+    required = test_weeks + n_folds * validation_weeks + 20
+    if len(weeks) < required:
+        raise ValueError(
+            f"Se requieren al menos {required} semanas de origen para {n_folds} folds walk-forward; "
+            f"hay {len(weeks)}."
+        )
+    test_start = weeks[-test_weeks]
+    history = [week for week in weeks if week < test_start]
+    fold_span = n_folds * validation_weeks
+    if len(history) <= fold_span + horizon:
+        raise ValueError("No hay suficiente historia previa al bloque de prueba para construir folds.")
+
+    folds: List[Dict[str, object]] = []
+    first_val_idx = len(history) - fold_span
+    for fold_idx in range(n_folds):
+        val_start_idx = first_val_idx + fold_idx * validation_weeks
+        val_end_idx = val_start_idx + validation_weeks
+        val_start = history[val_start_idx]
+        val_end = history[val_end_idx - 1]
+        train_weeks = history[:val_start_idx]
+        val_weeks = history[val_start_idx:val_end_idx]
+        train = frame[
+            frame["origin_week"].isin(train_weeks) & (frame["target_week"] < val_start)
+        ]
+        val = frame[
+            frame["origin_week"].isin(val_weeks) & (frame["target_week"] < test_start)
+        ]
+        if train.empty or val.empty:
+            continue
+        folds.append(
+            {
+                "fold": fold_idx + 1,
+                "train": train,
+                "validation": val,
+                "train_weeks": len(train_weeks),
+                "validation_weeks": len(val_weeks),
+                "train_origin_range": [
+                    str(pd.Timestamp(min(train_weeks)).date()),
+                    str(pd.Timestamp(max(train_weeks)).date()),
+                ],
+                "validation_origin_range": [
+                    str(pd.Timestamp(val_start).date()),
+                    str(pd.Timestamp(val_end).date()),
+                ],
+                "train_target_end": str(pd.Timestamp(train["target_week"].max()).date()),
+                "validation_target_start": str(pd.Timestamp(val["target_week"].min()).date()),
+                "test_start": str(pd.Timestamp(test_start).date()),
+                "horizon": horizon,
+            }
+        )
+    if not folds:
+        raise ValueError("No se pudo construir ningún fold walk-forward válido.")
+    return folds
 
 
 def split_geographic(frame: pd.DataFrame, *, holdout_ratio: float = 0.25) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, Dict[str, object]]:

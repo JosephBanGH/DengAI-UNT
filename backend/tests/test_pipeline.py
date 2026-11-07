@@ -2,10 +2,11 @@
 from __future__ import annotations
 
 import numpy as np
+import pandas as pd
 import pytest
 
 from app.db.session import SessionLocal
-from app.ml.features import build_dataset, build_features, load_panel
+from app.ml.features import build_dataset, build_features, load_panel, walk_forward_folds
 from app.ml.metrics import evaluate_all, mae, mase, winkler_score
 from app.ml.models.base import ModelData
 from app.ml.models.registry import create_model
@@ -40,6 +41,24 @@ def test_temporal_split_respects_chronology(panel):
     val_end = bundle.meta_val["origin_week"].max()
     test_start = bundle.meta_test["origin_week"].min()
     assert train_end < val_start <= val_end < test_start
+    # Sin solapamiento de objetivos entre particiones.
+    assert bundle.meta_train["target_week"].max() < val_start
+    assert bundle.meta_val["target_week"].max() < test_start
+
+
+def test_walk_forward_folds_do_not_leak(panel):
+    frame = build_features(panel, horizon=1)
+    folds = walk_forward_folds(frame, n_folds=3, validation_weeks=12, test_weeks=12, horizon=1)
+    assert len(folds) == 3
+    test_start = folds[0]["test_start"]
+    for fold in folds:
+        assert fold["train_target_end"] < fold["validation_origin_range"][0]
+        assert fold["validation_target_start"] < test_start
+        assert fold["train"]["origin_week"].max() < fold["validation"]["origin_week"].min()
+        assert pd.Timestamp(fold["validation"]["origin_week"].max()) < pd.Timestamp(test_start)
+    # Las ventanas de validación son disjuntas y crecientes.
+    starts = [fold["validation_origin_range"][0] for fold in folds]
+    assert starts == sorted(starts)
 
 
 def test_features_do_not_use_future_information(panel):
