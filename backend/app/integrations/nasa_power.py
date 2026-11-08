@@ -58,9 +58,10 @@ def probe_nasa_power(latitude: float = -8.1061, longitude: float = -79.0287) -> 
     started = time.perf_counter()
     end = date.today() - timedelta(days=7)
     start = end - timedelta(days=30)
+    base_url = settings.NASA_POWER_BASE_URL.replace("/temporal/weekly/", "/temporal/daily/")
     try:
         payload = _get(
-            settings.NASA_POWER_BASE_URL,
+            base_url,
             _params(latitude, longitude, start, end, ("T2M", "RH2M", "PRECTOTCORR")),
             min(settings.NASA_POWER_TIMEOUT, 30),
         )
@@ -75,7 +76,7 @@ def probe_nasa_power(latitude: float = -8.1061, longitude: float = -79.0287) -> 
                 "completa ejecute WF-01 o POST /data/ingest/real."
             ),
             "sample": sample,
-            "endpoint": settings.NASA_POWER_BASE_URL,
+            "endpoint": base_url,
         }
     except Exception as exc:
         logger.warning("NASA POWER no disponible: %s", exc)
@@ -84,7 +85,7 @@ def probe_nasa_power(latitude: float = -8.1061, longitude: float = -79.0287) -> 
             "latency_ms": int((time.perf_counter() - started) * 1000),
             "message": f"No fue posible contactar NASA POWER: {type(exc).__name__}: {exc}",
             "sample": None,
-            "endpoint": settings.NASA_POWER_BASE_URL,
+            "endpoint": base_url,
         }
 
 
@@ -96,23 +97,44 @@ def fetch_daily(
     *,
     save_raw: bool = False,
     label: str = "",
+    force_download: bool = False,
 ) -> List[Dict[str, Any]]:
-    """Descarga la serie diaria y la devuelve como filas normalizadas."""
-    payload = _get(
-        settings.NASA_POWER_BASE_URL,
-        _params(latitude, longitude, start, end, VARIABLES),
-        settings.NASA_POWER_TIMEOUT,
-    )
-    if save_raw:
-        raw_store.save_raw_json(
-            source="NASA_POWER",
-            filename=f"nasa_power_{label or 'point'}_{start:%Y%m%d}_{end:%Y%m%d}.json",
-            payload=payload,
-            url=settings.NASA_POWER_BASE_URL,
-            license=LICENSE,
-            provider=PROVIDER,
-            metadata={"latitude": latitude, "longitude": longitude, "start": start.isoformat(), "end": end.isoformat()},
+    """Descarga la serie diaria y la devuelve como filas normalizadas.
+
+    Si el archivo ya existe en data/raw/NASA_POWER y no se fuerza la descarga,
+    se carga directamente de disco con integridad verificable.
+    """
+    import json
+
+    target_filename = f"nasa_power_{label or 'point'}_{start:%Y%m%d}_{end:%Y%m%d}.json"
+    raw_file = settings.raw_dir / "NASA_POWER" / target_filename
+    payload = None
+
+    if raw_file.exists() and not force_download:
+        try:
+            payload = json.loads(raw_file.read_text(encoding="utf-8"))
+            logger.info("NASA POWER raw cargado desde disco: %s", raw_file.name)
+        except Exception as exc:
+            logger.warning("No se pudo leer raw existente %s: %s; se reintentará descarga", raw_file, exc)
+            payload = None
+
+    if payload is None:
+        base_url = settings.NASA_POWER_BASE_URL.replace("/temporal/weekly/", "/temporal/daily/")
+        payload = _get(
+            base_url,
+            _params(latitude, longitude, start, end, VARIABLES),
+            settings.NASA_POWER_TIMEOUT,
         )
+        if save_raw:
+            raw_store.save_raw_json(
+                source="NASA_POWER",
+                filename=target_filename,
+                payload=payload,
+                url=base_url,
+                license=LICENSE,
+                provider=PROVIDER,
+                metadata={"latitude": latitude, "longitude": longitude, "start": start.isoformat(), "end": end.isoformat()},
+            )
     parameter = payload.get("properties", {}).get("parameter", {})
     stamps = sorted({key for series in parameter.values() for key in series})
     rows: List[Dict[str, Any]] = []

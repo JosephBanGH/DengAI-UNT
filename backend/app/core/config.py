@@ -119,6 +119,21 @@ class Settings(BaseSettings):
     REPORTS_DIR: str = "data/reports"
     REVIEWER_EMAIL: str = "comite@dengai.unt.edu.pe"
 
+    @field_validator("DATABASE_URL", mode="before")
+    @classmethod
+    def _validate_database_url(cls, value: Any) -> str:
+        if not value or not str(value).strip():
+            return _default_database_url()
+        return str(value).strip()
+
+    @field_validator("NASA_POWER_BASE_URL", mode="before")
+    @classmethod
+    def _validate_nasa_power_url(cls, value: Any) -> str:
+        if not value or not str(value).strip():
+            return "https://power.larc.nasa.gov/api/temporal/daily/point"
+        url = str(value).strip()
+        return url.replace("/temporal/weekly/", "/temporal/daily/")
+
     @field_validator("SECRET_KEY")
     @classmethod
     def _ensure_secret(cls, value: str) -> str:

@@ -77,11 +77,11 @@ if TORCH_AVAILABLE:
             h = torch.sigmoid(o) * torch.tanh(c)
             return h, c
 
-        def init_state(self, batch: int, height: int, width: int):
+        def init_state(self, batch: int, height: int, width: int, device: Optional[Any] = None):
             shape = (batch, self.hidden_ch, height, width)
             return (
-                torch.zeros(shape, dtype=torch.float32),
-                torch.zeros(shape, dtype=torch.float32),
+                torch.zeros(shape, dtype=torch.float32, device=device),
+                torch.zeros(shape, dtype=torch.float32, device=device),
             )
 
     class ConvLSTMStack(nn.Module):
@@ -93,7 +93,8 @@ if TORCH_AVAILABLE:
 
         def forward(self, seq):
             batch, steps, _, height, width = seq.shape
-            states = [cell.init_state(batch, height, width) for cell in self.cells]
+            device = seq.device
+            states = [cell.init_state(batch, height, width, device=device) for cell in self.cells]
             outputs: List[Any] = []
             for step in range(steps):
                 x = seq[:, step]
@@ -199,7 +200,8 @@ class _TorchTrainerMixin:
         torch = _require_torch()
         import torch.nn as nn
 
-        net.to(torch.device("cpu"))
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        net.to(device)
         optimizer = torch.optim.AdamW(
             net.parameters(),
             lr=float(params.get("lr", 1e-3)),
@@ -225,8 +227,8 @@ class _TorchTrainerMixin:
             batches = 0
             for start in range(0, total, batch_size):
                 batch_idx = indices[start : start + batch_size]
-                inputs = {key: value[batch_idx] for key, value in train_tensors.items() if key != "y"}
-                target = train_tensors["y"][batch_idx]
+                inputs = {key: value[batch_idx].to(device) for key, value in train_tensors.items() if key != "y"}
+                target = train_tensors["y"][batch_idx].to(device)
                 optimizer.zero_grad(set_to_none=True)
                 prediction = net(**inputs)
                 loss = criterion(torch.clamp(prediction, min=POISSON_EPS), target)
@@ -241,11 +243,12 @@ class _TorchTrainerMixin:
             if val_tensors is not None and len(val_tensors["y"]) > 0:
                 net.eval()
                 with torch.no_grad():
-                    prediction = net(**{key: value for key, value in val_tensors.items() if key != "y"})
+                    val_inputs = {key: value.to(device) for key, value in val_tensors.items() if key != "y"}
+                    prediction = net(**val_inputs)
                 from sklearn.metrics import mean_absolute_error
 
                 val_mae = float(
-                    mean_absolute_error(val_tensors["y"].numpy(), torch.clamp(prediction, min=0).numpy())
+                    mean_absolute_error(val_tensors["y"].numpy(), torch.clamp(prediction, min=0).detach().cpu().numpy())
                 )
                 record["val_mae"] = round(val_mae, 5)
                 monitored = val_mae
@@ -292,6 +295,7 @@ def _to_tensors(data: ModelData, *, grid: bool) -> Dict[str, Any]:
 
 def _predict_grid(model, net, data: ModelData) -> np.ndarray:
     torch = _require_torch()
+    device = next(net.parameters()).device if list(net.parameters()) else torch.device("cpu")
 
     net.eval()
     grid = torch.as_tensor(data.grid, dtype=torch.float32).permute(0, 1, 4, 2, 3).contiguous()
@@ -299,7 +303,9 @@ def _predict_grid(model, net, data: ModelData) -> np.ndarray:
     outputs = []
     with torch.no_grad():
         for start in range(0, len(cell), 128):
-            outputs.append(net(grid=grid[start : start + 128], cell=cell[start : start + 128]))
+            g = grid[start : start + 128].to(device)
+            c = cell[start : start + 128].to(device)
+            outputs.append(net(grid=g, cell=c).detach().cpu())
     return np.clip(torch.cat(outputs).numpy(), 0, None)
 
 
@@ -326,11 +332,13 @@ class LSTMForecaster(_TorchTrainerMixin, BaseForecaster):
 
     def predict(self, data: ModelData) -> np.ndarray:
         torch = _require_torch()
+        device = next(self.net.parameters()).device if list(self.net.parameters()) else torch.device("cpu")
 
         self.net.eval()
         with torch.no_grad():
-            prediction = self.net(seq=torch.as_tensor(data.seq, dtype=torch.float32))
-        return np.clip(prediction.numpy(), 0, None)
+            s = torch.as_tensor(data.seq, dtype=torch.float32).to(device)
+            prediction = self.net(seq=s)
+        return np.clip(prediction.detach().cpu().numpy(), 0, None)
 
     def training_history(self):
         return getattr(self, "_history", [])
