@@ -572,16 +572,28 @@ def _window_context(
     cube_grid = np.zeros((n_w, rows, cols, len(CHANNEL_NAMES) + 1), dtype=np.float32)
     mapping = district_grid(panel_result.districts, _centroids(panel_result))
     week_lookup = {week: idx for idx, week in enumerate(panel_result.weeks)}
+    col_idx = {col: idx for idx, col in enumerate(columns)}
+    stat_keys = ("cases_lag_1", "temperature_mean", "humidity_mean", "precipitation_mm")
+    ch_mean = np.array(
+        [float(mean[col_idx[k]]) if k in col_idx else 0.0 for k in stat_keys],
+        dtype=np.float32,
+    )
+    ch_std = np.array(
+        [float(std[col_idx[k]]) if k in col_idx and std[col_idx[k]] > 1e-9 else 1.0 for k in stat_keys],
+        dtype=np.float32,
+    )
     for _, record in panel_result.panel.iterrows():
         position = mapping.get(record["district_code"])
         week_position = week_lookup.get(record["week_start"])
         if position is None or week_position is None:
             continue
         r, c = position
-        cube_grid[week_position, r, c, 0] = float(record["confirmed_cases"])
+        raw_cases = float(record["confirmed_cases"]) if pd.notna(record["confirmed_cases"]) else ch_mean[0]
+        cube_grid[week_position, r, c, 0] = (raw_cases - ch_mean[0]) / ch_std[0]
         for ch_idx, name in enumerate(CHANNEL_NAMES[1:], start=1):
             value = record.get(name)
-            cube_grid[week_position, r, c, ch_idx] = float(value) if pd.notna(value) else 0.0
+            raw_val = float(value) if pd.notna(value) else float(ch_mean[ch_idx])
+            cube_grid[week_position, r, c, ch_idx] = (raw_val - ch_mean[ch_idx]) / ch_std[ch_idx]
         cube_grid[week_position, r, c, -1] = 1.0
 
     return {
@@ -649,7 +661,7 @@ def _centroids(panel_result: PanelResult) -> Dict[str, Tuple[float, float]]:
 # Tensores espacio-temporales para ConvLSTM / CNN-LSTM
 # --------------------------------------------------------------------------------------
 def district_grid(district_codes: Sequence[str], centroids: Dict[str, Tuple[float, float]]) -> Dict[str, Tuple[int, int]]:
-    """Asigna cada distrito a una celda de la rejilla según su centroide (vecino más cercano)."""
+    """Asigna cada distrito a una celda única de la rejilla según su centroide (sin colisiones)."""
     rows, cols = GRID_SHAPE
     known = [code for code in district_codes if code in centroids]
     if known:
@@ -660,15 +672,20 @@ def district_grid(district_codes: Sequence[str], centroids: Dict[str, Tuple[floa
         lons = np.array([0.0])
     lat_min, lat_max = float(np.min(lats)), float(np.max(lats))
     lon_min, lon_max = float(np.min(lons)), float(np.max(lons))
+    all_cells = [(r, c) for r in range(rows) for c in range(cols)]
+    used: set[Tuple[int, int]] = set()
     mapping: Dict[str, Tuple[int, int]] = {}
     for code in district_codes:
         if code not in centroids:
-            mapping[code] = (0, 0)
-            continue
-        lat, lon = centroids[code]
-        r = 0 if lat_max - lat_min < 1e-9 else int(round((lat_max - lat) / (lat_max - lat_min) * (rows - 1)))
-        c = 0 if lon_max - lon_min < 1e-9 else int(round((lon - lon_min) / (lon_max - lon_min) * (cols - 1)))
-        mapping[code] = (r, c)
+            r_target, c_target = 0.0, 0.0
+        else:
+            lat, lon = centroids[code]
+            r_target = 0.0 if lat_max - lat_min < 1e-9 else (lat_max - lat) / (lat_max - lat_min) * (rows - 1)
+            c_target = 0.0 if lon_max - lon_min < 1e-9 else (lon - lon_min) / (lon_max - lon_min) * (cols - 1)
+        available = [cell for cell in all_cells if cell not in used] or all_cells
+        chosen = min(available, key=lambda rc: ((rc[0] - r_target) ** 2 + (rc[1] - c_target) ** 2, rc[0], rc[1]))
+        used.add(chosen)
+        mapping[code] = chosen
     return mapping
 
 

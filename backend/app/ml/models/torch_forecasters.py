@@ -203,6 +203,12 @@ class _TorchTrainerMixin:
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         net.to(device)
+        train_dev = {key: value.to(device) for key, value in train_tensors.items()}
+        val_dev = (
+            {key: value.to(device) for key, value in val_tensors.items()}
+            if val_tensors is not None and len(val_tensors["y"]) > 0
+            else None
+        )
         optimizer = torch.optim.AdamW(
             net.parameters(),
             lr=float(params.get("lr", 1e-3)),
@@ -212,7 +218,7 @@ class _TorchTrainerMixin:
         criterion = nn.PoissonNLLLoss(log_input=False, full=False, eps=POISSON_EPS)
 
         batch_size = int(params.get("batch_size", 64))
-        total = int(len(train_tensors["y"]))
+        total = int(len(train_dev["y"]))
         indices = np.arange(total)
         rng = np.random.default_rng(int(params.get("seed", 42)))
         best_state = {key: value.detach().clone() for key, value in net.state_dict().items()}
@@ -224,12 +230,13 @@ class _TorchTrainerMixin:
         for epoch in range(1, max_epochs + 1):
             net.train()
             rng.shuffle(indices)
+            idx_tensor = torch.as_tensor(indices, dtype=torch.long, device=device)
             epoch_loss = 0.0
             batches = 0
             for start in range(0, total, batch_size):
-                batch_idx = indices[start : start + batch_size]
-                inputs = {key: value[batch_idx].to(device) for key, value in train_tensors.items() if key != "y"}
-                target = train_tensors["y"][batch_idx].to(device)
+                batch_idx = idx_tensor[start : start + batch_size]
+                inputs = {key: value.index_select(0, batch_idx) for key, value in train_dev.items() if key != "y"}
+                target = train_dev["y"].index_select(0, batch_idx)
                 optimizer.zero_grad(set_to_none=True)
                 prediction = net(**inputs)
                 loss = criterion(torch.clamp(prediction, min=POISSON_EPS), target)
@@ -241,16 +248,12 @@ class _TorchTrainerMixin:
 
             record = {"epoch": float(epoch), "train_loss": round(epoch_loss / max(1, batches), 5)}
             monitored = record["train_loss"]
-            if val_tensors is not None and len(val_tensors["y"]) > 0:
+            if val_dev is not None:
                 net.eval()
                 with torch.no_grad():
-                    val_inputs = {key: value.to(device) for key, value in val_tensors.items() if key != "y"}
+                    val_inputs = {key: value for key, value in val_dev.items() if key != "y"}
                     prediction = net(**val_inputs)
-                from sklearn.metrics import mean_absolute_error
-
-                val_mae = float(
-                    mean_absolute_error(val_tensors["y"].numpy(), torch.clamp(prediction, min=0).detach().cpu().numpy())
-                )
+                    val_mae = float(torch.mean(torch.abs(val_dev["y"] - torch.clamp(prediction, min=0))).item())
                 record["val_mae"] = round(val_mae, 5)
                 monitored = val_mae
                 scheduler.step(val_mae)
