@@ -19,7 +19,6 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.permissions import PERMISSIONS, ROLE_TEMPLATES
-from app.core.security import hash_password
 from app.db.base import utcnow
 from app.models.epi import ClimateObservation, DataSource, DengueCase, EnvironmentalVariable
 from app.models.geo import EpiWeek, GeographicUnit
@@ -251,6 +250,8 @@ def ensure_rbac(db: Session) -> None:
 
 
 def ensure_users(db: Session) -> None:
+    from app.core.security import hash_password
+
     roles = {r.slug: r for r in db.scalars(select(Role))}
     admin = db.scalar(select(User).where(User.email == settings.BOOTSTRAP_ADMIN_EMAIL))
     if admin is None:
