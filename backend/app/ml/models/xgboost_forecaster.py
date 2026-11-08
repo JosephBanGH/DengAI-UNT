@@ -45,14 +45,50 @@ class XGBoostForecaster(BaseForecaster):
     ) -> "XGBoostForecaster":
         import xgboost as xgb
 
-        self.params = {**self.DEFAULT_PARAMS, **(params or {})}
+        gpu_defaults: Dict[str, Any] = {"tree_method": "hist"}
+        try:
+            import torch
+
+            if torch.cuda.is_available():
+                gpu_defaults["device"] = "cuda"
+        except Exception:
+            pass
+
+        self.params = {**self.DEFAULT_PARAMS, **gpu_defaults, **(params or {})}
         eval_set = [(train.X, train.y)]
         if val is not None and len(val) > 0:
             eval_set.append((val.X, val.y))
+
+        callbacks = []
+        if trial is not None and val is not None and len(val) > 0:
+            from optuna import TrialPruned
+
+            class _OptunaPruningCallback(xgb.callback.TrainingCallback):
+                def after_iteration(self, model, epoch: int, evals_log: dict) -> bool:
+                    val_metrics = evals_log.get("validation_1")
+                    if not val_metrics:
+                        return False
+                    metric_values = next(iter(val_metrics.values()))
+                    if not metric_values:
+                        return False
+                    score = metric_values[-1]
+                    if isinstance(score, tuple):
+                        score = score[0]
+                    # Escalar step cada 15 árboles a la escala 1..25 para compatibilidad con n_warmup_steps=5
+                    if (epoch + 1) % 15 == 0:
+                        step = (epoch + 1) // 15
+                        trial.report(float(score), step=step)
+                        if trial.should_prune():
+                            raise TrialPruned()
+                    return False
+
+            callbacks.append(_OptunaPruningCallback())
+
         self.model = xgb.XGBRegressor(
             **self.params,
             early_stopping_rounds=40 if len(eval_set) > 1 else None,
-            eval_metric="rmse",
+            eval_metric="mae",
+            callbacks=callbacks if callbacks else None,
         )
         self.model.fit(
             train.X,
@@ -60,15 +96,6 @@ class XGBoostForecaster(BaseForecaster):
             eval_set=eval_set if len(eval_set) > 1 else None,
             verbose=False,
         )
-        if trial is not None and val is not None and len(val) > 0:
-            from sklearn.metrics import mean_absolute_error
-
-            pred = self.predict(val)
-            trial.report(float(mean_absolute_error(val.y, pred)), step=1)
-            from optuna import TrialPruned
-
-            if trial.should_prune():
-                raise TrialPruned()
         booster = self.model.get_booster()
         gains = booster.get_score(importance_type="gain")
         names = list(train.feature_names)

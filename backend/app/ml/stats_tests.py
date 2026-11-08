@@ -187,7 +187,7 @@ def mcnemar_test(
             "reason": "No hay pares discordantes.",
             "n_pairs": int(len(y)),
         }
-    p_value = float(min(1.0, 2 * stats.binomtest(min(b_count, c_count), discordant, 0.5).pvalue))
+    p_value = float(stats.binomtest(min(b_count, c_count), discordant, 0.5).pvalue)
     return {
         "test_name": "McNemar",
         "comparison": f"{name_a} vs {name_b}",

@@ -177,9 +177,10 @@ if TORCH_AVAILABLE:
             # Atención espacial: resalta las celdas relevantes para el pronóstico.
             spatial = torch.softmax(self.spatial_score(weighted).flatten(1), dim=1)
             raw = self.head(weighted).flatten(1)
+            local = raw.gather(1, cell.unsqueeze(1)).squeeze(1)
             attended = (raw * spatial).sum(1)
             emb = self.bias(self.cell_embed(cell)).squeeze(1)
-            return F.softplus(attended + emb)
+            return F.softplus(local + attended + emb)
 
 
 # --------------------------------------------------------------------------------------
