@@ -6,8 +6,22 @@ from functools import lru_cache
 from pathlib import Path
 from typing import List, Literal
 
-from pydantic import Field, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+try:
+    from pydantic_settings import BaseSettings, SettingsConfigDict
+except ImportError:  # pragma: no cover - fallback when pydantic-settings is not installed
+    import os
+
+    class BaseSettings(BaseModel):  # type: ignore[no-redef]
+        def __init__(self, **kwargs):
+            for name in self.__class__.model_fields:
+                if name not in kwargs and name in os.environ:
+                    kwargs[name] = os.environ[name]
+            super().__init__(**kwargs)
+
+    def SettingsConfigDict(**kwargs):  # type: ignore[misc]
+        return ConfigDict(extra="ignore")
 
 BACKEND_DIR = Path(__file__).resolve().parents[2]
 PROJECT_DIR = BACKEND_DIR.parent
@@ -51,7 +65,13 @@ class Settings(BaseSettings):
     POSTGIS_ENABLED: bool = False
 
     # --- CORS ---
-    CORS_ORIGINS: List[str] = ["http://127.0.0.1:5173", "http://localhost:5173", "http://127.0.0.1:8000"]
+    CORS_ORIGINS: List[str] = [
+        "http://127.0.0.1:5173",
+        "http://localhost:5173",
+        "http://127.0.0.1:5174",
+        "http://localhost:5174",
+        "http://127.0.0.1:8000", "http://localhost:8000", "http://127.0.0.1:8080", "http://localhost:8080", "http://127.0.0.1:8001", "http://localhost:8001",
+    ]
 
     # --- Bootstrap (se usan solo si la BD está vacía) ---
     BOOTSTRAP_ADMIN_EMAIL: str = "admin@dengai.unt.edu.pe"
@@ -124,7 +144,10 @@ class Settings(BaseSettings):
     def _validate_database_url(cls, value: Any) -> str:
         if not value or not str(value).strip():
             return _default_database_url()
-        return str(value).strip()
+        url = str(value).strip()
+        if "@db:" in url and not Path("/.dockerenv").exists():
+            return _default_database_url()
+        return url
 
     @field_validator("NASA_POWER_BASE_URL", mode="before")
     @classmethod

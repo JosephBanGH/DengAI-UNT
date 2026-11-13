@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session
 
 from app.core.errors import ValidationError
 from app.db.base import utcnow
+from app.ml.features import resolve_data_mode
 from app.models.epi import (
     ClimateObservation,
     DataQualityRecord,
@@ -439,16 +440,46 @@ def import_errors(db: Session, job_id: int, *, limit: int = 200) -> List[Dict[st
 
 
 def quality_summary(db: Session) -> Dict[str, Any]:
-    total_cases = int(db.scalar(select(func.count()).select_from(DengueCase)) or 0)
-    total_climate = int(db.scalar(select(func.count()).select_from(ClimateObservation)) or 0)
-    districts = int(db.scalar(select(func.count()).select_from(GeographicUnit)) or 0)
-    weeks = int(db.scalar(select(func.count()).select_from(select(DengueCase.week_start).distinct().subquery())) or 0)
-    synthetic = int(db.scalar(select(func.count()).select_from(DengueCase).where(DengueCase.is_synthetic.is_(True))) or 0)
+    use_synthetic = resolve_data_mode(db) == "synthetic"
+    total_cases = int(
+        db.scalar(select(func.count()).select_from(DengueCase).where(DengueCase.is_synthetic.is_(use_synthetic))) or 0
+    )
+    total_climate = int(
+        db.scalar(
+            select(func.count())
+            .select_from(ClimateObservation)
+            .where(ClimateObservation.is_synthetic.is_(use_synthetic))
+        )
+        or 0
+    )
+    districts = int(
+        db.scalar(
+            select(func.count()).select_from(
+                select(DengueCase.district_code)
+                .where(DengueCase.is_synthetic.is_(use_synthetic))
+                .distinct()
+                .subquery()
+            )
+        )
+        or 0
+    ) or int(db.scalar(select(func.count()).select_from(GeographicUnit)) or 0)
+    weeks = int(
+        db.scalar(
+            select(func.count()).select_from(
+                select(DengueCase.week_start).where(DengueCase.is_synthetic.is_(use_synthetic)).distinct().subquery()
+            )
+        )
+        or 0
+    )
+    synthetic = total_cases if use_synthetic else 0
     missing_climate = int(
         db.scalar(
             select(func.count())
             .select_from(ClimateObservation)
-            .where(ClimateObservation.temperature_mean.is_(None))
+            .where(
+                ClimateObservation.is_synthetic.is_(use_synthetic),
+                ClimateObservation.temperature_mean.is_(None),
+            )
         )
         or 0
     )
@@ -487,7 +518,8 @@ def list_cases(
     page: int = 1,
     size: int = 50,
 ) -> Dict[str, Any]:
-    stmt = select(DengueCase)
+    use_synthetic = resolve_data_mode(db) == "synthetic"
+    stmt = select(DengueCase).where(DengueCase.is_synthetic.is_(use_synthetic))
     if district:
         stmt = stmt.where(DengueCase.district_code == district)
     if start_week:
@@ -524,7 +556,8 @@ def list_climate(
     page: int = 1,
     size: int = 50,
 ) -> Dict[str, Any]:
-    stmt = select(ClimateObservation)
+    use_synthetic = resolve_data_mode(db) == "synthetic"
+    stmt = select(ClimateObservation).where(ClimateObservation.is_synthetic.is_(use_synthetic))
     if district:
         stmt = stmt.where(ClimateObservation.district_code == district)
     total = db.scalar(select(func.count()).select_from(stmt.subquery())) or 0

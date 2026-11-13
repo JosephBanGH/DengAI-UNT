@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="178.0mm" height="90.0mm" viewBox="0 0 504.57 255.12">
+  <style>
+    text { font-family: "Arial", "Helvetica", sans-serif; }
+  </style>
+  <rect x="0" y="0" width="504.57" height="255.12" fill="white" />
+  <text x="14.00" y="12.00" font-size="7.20pt" font-weight="bold" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">(a) Riesgo observado en la semana 2023-W09</text>
+  <path d="M 14.00 34.00 L 14.00 186.00" stroke="rgb(205,205,205)" stroke-width="0.90" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 14.00 186.00 L 246.00 186.00" stroke="rgb(205,205,205)" stroke-width="0.90" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <circle cx="107.89" cy="160.37" r="6.80" fill="rgb(214,105,40)" stroke="rgb(70,70,70)" stroke-width="0.70"/>
+  <circle cx="105.03" cy="164.23" r="3.88" fill="rgb(150,36,30)" stroke="rgb(70,70,70)" stroke-width="0.70"/>
+  <circle cx="114.59" cy="158.61" r="5.58" fill="rgb(214,105,40)" stroke="rgb(70,70,70)" stroke-width="0.70"/>
+  <circle cx="112.47" cy="155.38" r="5.70" fill="rgb(150,36,30)" stroke="rgb(70,70,70)" stroke-width="0.70"/>
+  <circle cx="115.71" cy="157.25" r="3.28" fill="rgb(214,105,40)" stroke="rgb(70,70,70)" stroke-width="0.70"/>
+  <circle cx="94.40" cy="156.88" r="3.70" fill="rgb(214,105,40)" stroke="rgb(70,70,70)" stroke-width="0.70"/>
+  <circle cx="118.10" cy="158.14" r="3.21" fill="rgb(214,105,40)" stroke="rgb(70,70,70)" stroke-width="0.70"/>
+  <circle cx="110.58" cy="168.78" r="3.28" fill="rgb(214,105,40)" stroke="rgb(70,70,70)" stroke-width="0.70"/>
+  <circle cx="115.54" cy="175.94" r="2.68" fill="rgb(214,105,40)" stroke="rgb(70,70,70)" stroke-width="0.70"/>
+  <circle cx="96.12" cy="108.60" r="2.54" fill="rgb(150,36,30)" stroke="rgb(70,70,70)" stroke-width="0.70"/>
+  <circle cx="67.54" cy="111.10" r="3.02" fill="rgb(214,105,40)" stroke="rgb(70,70,70)" stroke-width="0.70"/>
+  <circle cx="48.25" cy="43.95" r="3.29" fill="rgb(214,105,40)" stroke="rgb(70,70,70)" stroke-width="0.70"/>
+  <circle cx="27.18" cy="67.12" r="3.03" fill="rgb(214,105,40)" stroke="rgb(70,70,70)" stroke-width="0.70"/>
+  <circle cx="234.80" cy="165.43" r="2.40" fill="rgb(46,125,50)" stroke="rgb(70,70,70)" stroke-width="0.70"/>
+  <text x="88.40" y="160.88" font-size="5.60pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="end" dominant-baseline="hanging">Huanchaco</text>
+  <text x="101.12" y="102.60" font-size="5.60pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">Ascope</text>
+  <text x="62.54" y="105.10" font-size="5.60pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="end" dominant-baseline="hanging">Paiján</text>
+  <text x="53.25" y="33.95" font-size="5.60pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">Chepén</text>
+  <text x="32.18" y="63.12" font-size="5.60pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">Pacasmayo</text>
+  <text x="229.80" y="157.43" font-size="5.60pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="end" dominant-baseline="hanging">Santiago de Chuco</text>
+  <path d="M 102.49 152.30 L 120.33 152.30" stroke="rgb(110,110,110)" stroke-width="0.70" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke-dasharray="2 2"/>
+  <path d="M 120.33 152.30 L 120.33 170.80" stroke="rgb(110,110,110)" stroke-width="0.70" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke-dasharray="2 2"/>
+  <path d="M 120.33 170.80 L 102.49 170.80" stroke="rgb(110,110,110)" stroke-width="0.70" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke-dasharray="2 2"/>
+  <path d="M 102.49 170.80 L 102.49 152.30" stroke="rgb(110,110,110)" stroke-width="0.70" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke-dasharray="2 2"/>
+  <text x="124.33" y="172.80" font-size="5.60pt" font-weight="normal" font-style="normal" fill="rgb(110,110,110)" text-anchor="start" dominant-baseline="hanging">área metropolitana</text>
+  <text x="124.33" y="179.80" font-size="5.60pt" font-weight="normal" font-style="normal" fill="rgb(110,110,110)" text-anchor="start" dominant-baseline="hanging">(9 distritos, véase b)</text>
+  <rect x="14.00" y="192.50" width="7.00" height="7.00" fill="rgb(46,125,50)" stroke="rgb(70,70,70)" stroke-width="0.60"/>
+  <text x="24.00" y="196.00" font-size="5.90pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">Bajo</text>
+  <rect x="130.00" y="192.50" width="7.00" height="7.00" fill="rgb(233,181,63)" stroke="rgb(70,70,70)" stroke-width="0.60"/>
+  <text x="140.00" y="196.00" font-size="5.90pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">Medio</text>
+  <rect x="14.00" y="203.50" width="7.00" height="7.00" fill="rgb(214,105,40)" stroke="rgb(70,70,70)" stroke-width="0.60"/>
+  <text x="24.00" y="207.00" font-size="5.90pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">Alto</text>
+  <rect x="130.00" y="203.50" width="7.00" height="7.00" fill="rgb(150,36,30)" stroke="rgb(70,70,70)" stroke-width="0.60"/>
+  <text x="140.00" y="207.00" font-size="5.90pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">Crítico</text>
+  <path d="M 26.00 176.00 L 39.38 176.00" stroke="rgb(33,33,33)" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <text x="26.00" y="166.00" font-size="5.20pt" font-weight="normal" font-style="normal" fill="rgb(110,110,110)" text-anchor="start" dominant-baseline="hanging">10 km</text>
+  <text x="14.00" y="224.00" font-size="5.40pt" font-weight="normal" font-style="normal" fill="rgb(110,110,110)" text-anchor="start" dominant-baseline="hanging">Casos por 100 000 hab y semana: Bajo &lt; 5 · Medio 5–20 · Alto 20–50 · Crítico ≥ 50</text>
+  <text x="262.00" y="12.00" font-size="7.20pt" font-weight="bold" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">(b) Validación retrospectiva en el pico epidémico</text>
+  <text x="274.00" y="34.00" font-size="5.60pt" font-weight="bold" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">Distrito</text>
+  <text x="348.00" y="34.00" font-size="5.60pt" font-weight="bold" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">Obs</text>
+  <text x="370.00" y="34.00" font-size="5.60pt" font-weight="bold" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">Pron</text>
+  <text x="394.00" y="34.00" font-size="5.60pt" font-weight="bold" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">Incid</text>
+  <text x="430.00" y="34.00" font-size="5.60pt" font-weight="bold" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">Nivel</text>
+  <path d="M 262.00 41.00 L 462.00 41.00" stroke="rgb(33,33,33)" stroke-width="0.70" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <rect x="261.00" y="42.40" width="3.60" height="7.20" fill="rgb(150,36,30)" stroke="none" stroke-width="1.00"/>
+  <text x="274.00" y="46.00" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">La Esperanza</text>
+  <text x="348.00" y="46.00" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">181</text>
+  <text x="370.00" y="46.00" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">168</text>
+  <text x="394.00" y="46.00" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">90,0</text>
+  <text x="430.00" y="46.00" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">Crítico</text>
+  <rect x="261.00" y="53.00" width="3.60" height="7.20" fill="rgb(214,105,40)" stroke="none" stroke-width="1.00"/>
+  <text x="274.00" y="56.60" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">Trujillo</text>
+  <text x="348.00" y="56.60" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">126</text>
+  <text x="370.00" y="56.60" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">118</text>
+  <text x="394.00" y="56.60" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">40,1</text>
+  <text x="430.00" y="56.60" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">Alto</text>
+  <rect x="261.00" y="63.60" width="3.60" height="7.20" fill="rgb(214,105,40)" stroke="none" stroke-width="1.00"/>
+  <text x="274.00" y="67.20" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">El Porvenir</text>
+  <text x="348.00" y="67.20" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">52</text>
+  <text x="370.00" y="67.20" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">58</text>
+  <text x="394.00" y="67.20" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">27,3</text>
+  <text x="430.00" y="67.20" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">Alto</text>
+  <rect x="261.00" y="74.20" width="3.60" height="7.20" fill="rgb(150,36,30)" stroke="none" stroke-width="1.00"/>
+  <text x="274.00" y="77.80" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">Víctor Larco</text>
+  <text x="348.00" y="77.80" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">36</text>
+  <text x="370.00" y="77.80" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">34</text>
+  <text x="394.00" y="77.80" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">52,6</text>
+  <text x="430.00" y="77.80" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">Crítico</text>
+  <rect x="261.00" y="84.80" width="3.60" height="7.20" fill="rgb(214,105,40)" stroke="none" stroke-width="1.00"/>
+  <text x="274.00" y="88.40" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">Huanchaco</text>
+  <text x="348.00" y="88.40" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">22</text>
+  <text x="370.00" y="88.40" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">26</text>
+  <text x="394.00" y="88.40" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">37,3</text>
+  <text x="430.00" y="88.40" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">Alto</text>
+  <rect x="261.00" y="95.40" width="3.60" height="7.20" fill="rgb(214,105,40)" stroke="none" stroke-width="1.00"/>
+  <text x="274.00" y="99.00" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">Moche</text>
+  <text x="348.00" y="99.00" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">20</text>
+  <text x="370.00" y="99.00" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">17</text>
+  <text x="394.00" y="99.00" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">49,7</text>
+  <text x="430.00" y="99.00" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">Alto</text>
+  <rect x="261.00" y="106.00" width="3.60" height="7.20" fill="rgb(214,105,40)" stroke="none" stroke-width="1.00"/>
+  <text x="274.00" y="109.60" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">Chepén</text>
+  <text x="348.00" y="109.60" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">16</text>
+  <text x="370.00" y="109.60" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">19</text>
+  <text x="394.00" y="109.60" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">39,3</text>
+  <text x="430.00" y="109.60" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">Alto</text>
+  <rect x="261.00" y="116.60" width="3.60" height="7.20" fill="rgb(214,105,40)" stroke="none" stroke-width="1.00"/>
+  <text x="274.00" y="120.20" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">Florencia de Mora</text>
+  <text x="348.00" y="120.20" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">12</text>
+  <text x="370.00" y="120.20" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">11</text>
+  <text x="394.00" y="120.20" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">29,9</text>
+  <text x="430.00" y="120.20" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">Alto</text>
+  <rect x="261.00" y="127.20" width="3.60" height="7.20" fill="rgb(214,105,40)" stroke="none" stroke-width="1.00"/>
+  <text x="274.00" y="130.80" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">Laredo</text>
+  <text x="348.00" y="130.80" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">11</text>
+  <text x="370.00" y="130.80" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">13</text>
+  <text x="394.00" y="130.80" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">29,6</text>
+  <text x="430.00" y="130.80" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">Alto</text>
+  <rect x="261.00" y="137.80" width="3.60" height="7.20" fill="rgb(214,105,40)" stroke="none" stroke-width="1.00"/>
+  <text x="274.00" y="141.40" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">Paiján</text>
+  <text x="348.00" y="141.40" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">9</text>
+  <text x="370.00" y="141.40" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">10</text>
+  <text x="394.00" y="141.40" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">30,0</text>
+  <text x="430.00" y="141.40" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">Alto</text>
+  <rect x="261.00" y="148.40" width="3.60" height="7.20" fill="rgb(214,105,40)" stroke="none" stroke-width="1.00"/>
+  <text x="274.00" y="152.00" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">Pacasmayo</text>
+  <text x="348.00" y="152.00" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">9</text>
+  <text x="370.00" y="152.00" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">7</text>
+  <text x="394.00" y="152.00" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">29,4</text>
+  <text x="430.00" y="152.00" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">Alto</text>
+  <rect x="261.00" y="159.00" width="3.60" height="7.20" fill="rgb(214,105,40)" stroke="none" stroke-width="1.00"/>
+  <text x="274.00" y="162.60" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">Salaverry</text>
+  <text x="348.00" y="162.60" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">8</text>
+  <text x="370.00" y="162.60" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">9</text>
+  <text x="394.00" y="162.60" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">41,3</text>
+  <text x="430.00" y="162.60" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">Alto</text>
+  <rect x="261.00" y="169.60" width="3.60" height="7.20" fill="rgb(150,36,30)" stroke="none" stroke-width="1.00"/>
+  <text x="274.00" y="173.20" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">Ascope</text>
+  <text x="348.00" y="173.20" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">8</text>
+  <text x="370.00" y="173.20" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">6</text>
+  <text x="394.00" y="173.20" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">51,8</text>
+  <text x="430.00" y="173.20" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">Crítico</text>
+  <rect x="261.00" y="180.20" width="3.60" height="7.20" fill="rgb(46,125,50)" stroke="none" stroke-width="1.00"/>
+  <text x="274.00" y="183.80" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">Santiago de Chuco</text>
+  <text x="348.00" y="183.80" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">0</text>
+  <text x="370.00" y="183.80" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">1</text>
+  <text x="394.00" y="183.80" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">0,0</text>
+  <text x="430.00" y="183.80" font-size="5.50pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">Bajo</text>
+  <path d="M 262.00 190.40 L 462.00 190.40" stroke="rgb(150,150,150)" stroke-width="0.60" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <text x="262.00" y="198.40" font-size="5.70pt" font-weight="normal" font-style="normal" fill="rgb(110,110,110)" text-anchor="start" dominant-baseline="hanging">MAE = 3,5 casos · sesgo medio = −0,9 casos</text>
+  <text x="262.00" y="206.40" font-size="5.40pt" font-weight="normal" font-style="normal" fill="rgb(110,110,110)" text-anchor="start" dominant-baseline="hanging">Obs: casos notificados; Pron: emitido en 2023-W08</text>
+</svg>

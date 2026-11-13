@@ -2,9 +2,22 @@ import { useEffect, useState } from "react";
 import { api } from "../api/client";
 import type { Prediction } from "../api/types";
 import { PageHeader } from "../components/Layout";
-import { Card, CardBody, CardHeader, DataTable, EmptyState, ErrorAlert, Loading, RiskBadge, formatDate, formatNumber } from "../components/ui";
+import {
+  Card,
+  CardBody,
+  CardHeader,
+  DataTable,
+  EmptyState,
+  ErrorAlert,
+  InterpretabilityCard,
+  Loading,
+  RiskBadge,
+  formatDate,
+  formatNumber,
+} from "../components/ui";
 import { useAuth } from "../context/AuthContext";
 import { describeError, useToast } from "../context/ToastContext";
+import { downloadCsv } from "../utils/export";
 
 interface ForecastResult {
   run_key: string;
@@ -126,50 +139,85 @@ export function ForecastsPage() {
           title="Pronósticos vigentes"
           subtitle="Ordenados por horizonte y casos esperados"
           actions={
-            <select className="select" style={{ width: 170 }} value={filter} onChange={(event) => setFilter(event.target.value ? Number(event.target.value) : "")}>
-              <option value="">Todos los horizontes</option>
-              {HORIZONS.map((horizon) => (
-                <option key={horizon} value={horizon}>h = {horizon}</option>
-              ))}
-            </select>
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              {items.length ? (
+                <button
+                  className="btn btn-sm"
+                  onClick={() =>
+                    downloadCsv(
+                      "pronosticos_vigentes_dengai.csv",
+                      ["codigo_distrito", "distrito", "semana_objetivo", "horizonte", "casos_pronosticados", "limite_inferior_90", "limite_superior_90", "incidencia_por_100k", "nivel_riesgo"],
+                      items.map((r) => [
+                        r.district_code,
+                        r.district_name,
+                        `${r.target_year}-W${String(r.target_week).padStart(2, "0")}`,
+                        r.horizon_weeks,
+                        r.predicted_cases?.toFixed(2) ?? 0,
+                        r.lower_bound?.toFixed(2) ?? 0,
+                        r.upper_bound?.toFixed(2) ?? 0,
+                        r.incidence_per_100k?.toFixed(2) ?? 0,
+                        r.risk_level,
+                      ])
+                    )
+                  }
+                  title="Descargar pronósticos en CSV"
+                >
+                  Descargar CSV (Pronósticos)
+                </button>
+              ) : null}
+              <select className="select" style={{ width: 170 }} value={filter} onChange={(event) => setFilter(event.target.value ? Number(event.target.value) : "")}>
+                <option value="">Todos los horizontes</option>
+                {HORIZONS.map((horizon) => (
+                  <option key={horizon} value={horizon}>h = {horizon}</option>
+                ))}
+              </select>
+            </div>
           }
         />
         <CardBody>
           {loading ? (
             <Loading />
           ) : items.length ? (
-            <DataTable
-              rows={items}
-              rowKey={(row) => `${row.district_code}-${row.horizon_weeks}`}
-              columns={[
-                { key: "district_name", header: "Distrito" },
-                {
-                  key: "target",
-                  header: "Semana objetivo",
-                  render: (row) => `${row.target_year}-W${String(row.target_week).padStart(2, "0")}`,
-                },
-                { key: "horizon_weeks", header: "Horizonte", numeric: true, render: (row) => `h=${row.horizon_weeks}` },
-                { key: "predicted_cases", header: "Casos pron.", numeric: true, render: (row) => formatNumber(row.predicted_cases, 1) },
-                {
-                  key: "interval",
-                  header: "IC 90%",
-                  numeric: true,
-                  render: (row) => `${formatNumber(row.lower_bound, 1)} – ${formatNumber(row.upper_bound, 1)}`,
-                },
-                { key: "incidence_per_100k", header: "Incidencia /100k", numeric: true, render: (row) => formatNumber(row.incidence_per_100k, 1) },
-                { key: "risk_level", header: "Riesgo", render: (row) => <RiskBadge level={row.risk_level} /> },
-                {
-                  key: "explain",
-                  header: "",
-                  render: (row) =>
-                    can("explain:read") ? (
-                      <button className="btn btn-sm btn-ghost" onClick={() => openExplanation(row.district_code)}>
-                        Explicar
-                      </button>
-                    ) : null,
-                },
-              ]}
-            />
+            <>
+              <DataTable
+                rows={items}
+                rowKey={(row) => `${row.district_code}-${row.horizon_weeks}`}
+                columns={[
+                  { key: "district_name", header: "Distrito" },
+                  {
+                    key: "target",
+                    header: "Semana objetivo",
+                    render: (row) => `${row.target_year}-W${String(row.target_week).padStart(2, "0")}`,
+                  },
+                  { key: "horizon_weeks", header: "Horizonte", numeric: true, render: (row) => `h=${row.horizon_weeks}` },
+                  { key: "predicted_cases", header: "Casos pron.", numeric: true, render: (row) => formatNumber(row.predicted_cases, 1) },
+                  {
+                    key: "interval",
+                    header: "IC 90%",
+                    numeric: true,
+                    render: (row) => `${formatNumber(row.lower_bound, 1)} – ${formatNumber(row.upper_bound, 1)}`,
+                  },
+                  { key: "incidence_per_100k", header: "Incidencia /100k", numeric: true, render: (row) => formatNumber(row.incidence_per_100k, 1) },
+                  { key: "risk_level", header: "Riesgo", render: (row) => <RiskBadge level={row.risk_level} /> },
+                  {
+                    key: "explain",
+                    header: "",
+                    render: (row) =>
+                      can("explain:read") ? (
+                        <button className="btn btn-sm btn-ghost" onClick={() => openExplanation(row.district_code)}>
+                          Explicar
+                        </button>
+                      ) : null,
+                  },
+                ]}
+              />
+              <InterpretabilityCard
+                title="Explicabilidad del Pronóstico Distrital e Incertidumbre"
+                finding="Pronósticos cuantitativos acompañados de intervalos de incertidumbre al 90 % calculados mediante distribución condicional empírica."
+                mechanism="Permite cuantificar no solo el valor esperado sino la cota superior en escenarios de aceleración epidémica imprevista por lluvias."
+                paperSnippet="La estimación de intervalos de predicción al 90 % complementa el pronóstico puntual, otorgando un marco riguroso de gestión de riesgo frente a la variabilidad hidroclimática costera."
+              />
+            </>
           ) : (
             <EmptyState
               title="Sin pronósticos registrados"

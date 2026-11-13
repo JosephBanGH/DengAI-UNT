@@ -68,10 +68,50 @@ def save_bundle(algorithm: str, version: str, payload: Dict[str, Any]) -> Tuple[
     return str(path), checksum
 
 
+def resolve_artifact_path(path: str | Path) -> Path:
+    """Resuelve rutas absolutas legadas ('10 CICLO' -> '10_CICLO') o relativas a PROJECT_DIR."""
+    from app.core.config import PROJECT_DIR
+
+    raw = str(path)
+    candidate = Path(raw)
+    if candidate.exists():
+        return candidate
+    normalized = raw.replace("10 CICLO", "10_CICLO")
+    if Path(normalized).exists():
+        return Path(normalized)
+    if not candidate.is_absolute() and (PROJECT_DIR / candidate).exists():
+        return PROJECT_DIR / candidate
+    posix = raw.replace("\\", "/")
+    for marker in ("data/models/", "data/reports/"):
+        if marker in posix:
+            rel = posix.split(marker, 1)[1]
+            resolved = PROJECT_DIR / marker / rel
+            if resolved.exists():
+                return resolved
+    return Path(normalized)
+
+
 def load_bundle(path: str) -> Dict[str, Any]:
+    import io
     import joblib
 
-    return joblib.load(path)
+    resolved_path = str(resolve_artifact_path(path))
+    try:
+        return joblib.load(resolved_path)
+    except RuntimeError as exc:
+        if "CUDA" not in str(exc) and "cuda" not in str(exc):
+            raise
+        import torch
+
+        original_loader = getattr(torch.storage, "_load_from_bytes", None)
+        try:
+            torch.storage._load_from_bytes = lambda b: torch.load(  # type: ignore[assignment]
+                io.BytesIO(b), map_location="cpu", weights_only=False
+            )
+            return joblib.load(resolved_path)
+        finally:
+            if original_loader is not None:
+                torch.storage._load_from_bytes = original_loader
 
 
 def save_predictions(run_id: str, horizon: int, y_true, y_pred, meta) -> str:

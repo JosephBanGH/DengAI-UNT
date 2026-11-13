@@ -21,9 +21,12 @@ if LIBS.is_dir():
         if not entry.lower().replace("\\", "/").rstrip("/").endswith("site-packages")
     ]
 
-_TMP_DB = pathlib.Path(tempfile.gettempdir()) / "dengai_tests.db"
+_TMP_DB = pathlib.Path(tempfile.gettempdir()) / f"dengai_tests_{os.getpid()}.db"
 if _TMP_DB.exists():
-    _TMP_DB.unlink()
+    try:
+        _TMP_DB.unlink()
+    except Exception:
+        pass
 os.environ["DATABASE_URL"] = f"sqlite:///{_TMP_DB.as_posix()}"
 os.environ["ENVIRONMENT"] = "test"
 os.environ["SEED_DEMO_USERS"] = "true"

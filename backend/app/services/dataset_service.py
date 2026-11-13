@@ -148,3 +148,49 @@ def data_dictionary(db: Session, dataset_id: int) -> List[Dict[str, Any]]:
         }
         for column, meta in sorted(dictionary.items())
     ]
+
+
+def update_data_dictionary_entry(
+    db: Session,
+    dataset_id: int,
+    column: str,
+    *,
+    description: str,
+    unit: str,
+    source: str,
+    actor: str,
+) -> Dict[str, Any]:
+    """Actualiza la definición de metadatos de una variable en el diccionario de datos."""
+    record = db.get(Dataset, dataset_id)
+    if record is None:
+        raise NotFoundError("El conjunto de datos no existe.")
+    current_dict = dict(record.data_dictionary or {})
+    current_dict[column] = {
+        "description": description,
+        "unit": unit,
+        "source": source,
+    }
+    record.data_dictionary = current_dict
+    db.commit()
+    audit_service.record(
+        db,
+        event_type=audit_service.AuditEventType.UPDATE,
+        module="M16",
+        action="update_data_dictionary",
+        result="SUCCESS",
+        user_email=actor,
+        resource_type="dataset_dictionary",
+        resource_id=record.id,
+        description=f"Metadatos de variable '{column}' actualizados en conjunto {record.name}.",
+        context={"column": column, "unit": unit, "source": source},
+    )
+    db.commit()
+    return {
+        "column": column,
+        "dtype": "float64",
+        "description": description,
+        "unit": unit,
+        "source": source,
+        "nullable": column != "target",
+    }
+

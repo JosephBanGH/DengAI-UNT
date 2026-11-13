@@ -22,6 +22,12 @@ factores asociados.
 
 ---
 
+> [!TIP]
+> **¿Eres el docente o evaluador del proyecto?**  
+> Hemos preparado una guía simplificada de 3 pasos para poner en marcha el sistema en menos de 2 minutos sin necesidad de instalar Node.js ni compilar assets. Consulta el archivo adjunto **[INSTRUCCIONES_EVALUADOR.md](INSTRUCCIONES_EVALUADOR.md)**.
+
+---
+
 ## 1. Puesta en marcha (verificada en este entorno)
 
 Requisitos: Python 3.12 y (opcional) Node.js 22 para recompilar el frontend.

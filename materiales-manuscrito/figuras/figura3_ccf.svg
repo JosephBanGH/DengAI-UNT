@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="168.0mm" height="100.0mm" viewBox="0 0 476.22 283.46">
+  <style>
+    text { font-family: "Arial", "Helvetica", sans-serif; }
+  </style>
+  <rect x="0" y="0" width="476.22" height="283.46" fill="white" />
+  <text x="46.00" y="12.00" font-size="7.60pt" font-weight="bold" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">Correlación cruzada entre anomalías climáticas y anomalías de casos</text>
+  <circle cx="150.00" cy="28.00" r="1.40" fill="rgb(0,121,140)" stroke="none" stroke-width="1.00"/>
+  <text x="155.00" y="28.00" font-size="6.20pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">precipitación</text>
+  <circle cx="242.00" cy="28.00" r="1.40" fill="rgb(214,126,44)" stroke="none" stroke-width="1.00"/>
+  <text x="247.00" y="28.00" font-size="6.20pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">temperatura</text>
+  <circle cx="334.00" cy="28.00" r="1.40" fill="rgb(31,78,121)" stroke="none" stroke-width="1.00"/>
+  <text x="339.00" y="28.00" font-size="6.20pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="central">humedad</text>
+  <path d="M 52.00 180.73 L 452.00 180.73" stroke="rgb(222,222,222)" stroke-width="0.60" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 52.00 149.45 L 452.00 149.45" stroke="rgb(222,222,222)" stroke-width="0.60" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 52.00 118.18 L 452.00 118.18" stroke="rgb(222,222,222)" stroke-width="0.60" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 52.00 86.91 L 452.00 86.91" stroke="rgb(222,222,222)" stroke-width="0.60" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 52.00 55.64 L 452.00 55.64" stroke="rgb(222,222,222)" stroke-width="0.60" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 63.02 40.00 L 63.02 212.00" stroke="rgb(222,222,222)" stroke-width="0.60" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 94.52 40.00 L 94.52 212.00" stroke="rgb(222,222,222)" stroke-width="0.60" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 126.02 40.00 L 126.02 212.00" stroke="rgb(222,222,222)" stroke-width="0.60" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 157.51 40.00 L 157.51 212.00" stroke="rgb(222,222,222)" stroke-width="0.60" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 189.01 40.00 L 189.01 212.00" stroke="rgb(222,222,222)" stroke-width="0.60" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 220.50 40.00 L 220.50 212.00" stroke="rgb(222,222,222)" stroke-width="0.60" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 252.00 40.00 L 252.00 212.00" stroke="rgb(222,222,222)" stroke-width="0.60" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 283.50 40.00 L 283.50 212.00" stroke="rgb(222,222,222)" stroke-width="0.60" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 314.99 40.00 L 314.99 212.00" stroke="rgb(222,222,222)" stroke-width="0.60" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 346.49 40.00 L 346.49 212.00" stroke="rgb(222,222,222)" stroke-width="0.60" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 377.98 40.00 L 377.98 212.00" stroke="rgb(222,222,222)" stroke-width="0.60" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 409.48 40.00 L 409.48 212.00" stroke="rgb(222,222,222)" stroke-width="0.60" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 440.98 40.00 L 440.98 212.00" stroke="rgb(222,222,222)" stroke-width="0.60" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 49.00 180.73 L 52.00 180.73" stroke="rgb(33,33,33)" stroke-width="0.80" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 49.00 149.45 L 52.00 149.45" stroke="rgb(33,33,33)" stroke-width="0.80" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 49.00 118.18 L 52.00 118.18" stroke="rgb(33,33,33)" stroke-width="0.80" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 49.00 86.91 L 52.00 86.91" stroke="rgb(33,33,33)" stroke-width="0.80" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 49.00 55.64 L 52.00 55.64" stroke="rgb(33,33,33)" stroke-width="0.80" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 63.02 212.00 L 63.02 215.00" stroke="rgb(33,33,33)" stroke-width="0.80" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 94.52 212.00 L 94.52 215.00" stroke="rgb(33,33,33)" stroke-width="0.80" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 126.02 212.00 L 126.02 215.00" stroke="rgb(33,33,33)" stroke-width="0.80" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 157.51 212.00 L 157.51 215.00" stroke="rgb(33,33,33)" stroke-width="0.80" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 189.01 212.00 L 189.01 215.00" stroke="rgb(33,33,33)" stroke-width="0.80" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 220.50 212.00 L 220.50 215.00" stroke="rgb(33,33,33)" stroke-width="0.80" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 252.00 212.00 L 252.00 215.00" stroke="rgb(33,33,33)" stroke-width="0.80" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 283.50 212.00 L 283.50 215.00" stroke="rgb(33,33,33)" stroke-width="0.80" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 314.99 212.00 L 314.99 215.00" stroke="rgb(33,33,33)" stroke-width="0.80" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 346.49 212.00 L 346.49 215.00" stroke="rgb(33,33,33)" stroke-width="0.80" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 377.98 212.00 L 377.98 215.00" stroke="rgb(33,33,33)" stroke-width="0.80" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 409.48 212.00 L 409.48 215.00" stroke="rgb(33,33,33)" stroke-width="0.80" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 440.98 212.00 L 440.98 215.00" stroke="rgb(33,33,33)" stroke-width="0.80" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 52.00 40.00 L 52.00 212.00" stroke="rgb(33,33,33)" stroke-width="0.90" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 52.00 212.00 L 452.00 212.00" stroke="rgb(33,33,33)" stroke-width="0.90" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <text x="47.50" y="180.73" font-size="7.00pt" font-weight="normal" font-style="normal" fill="rgb(110,110,110)" text-anchor="end" dominant-baseline="central">0,0</text>
+  <text x="47.50" y="149.45" font-size="7.00pt" font-weight="normal" font-style="normal" fill="rgb(110,110,110)" text-anchor="end" dominant-baseline="central">0,1</text>
+  <text x="47.50" y="118.18" font-size="7.00pt" font-weight="normal" font-style="normal" fill="rgb(110,110,110)" text-anchor="end" dominant-baseline="central">0,2</text>
+  <text x="47.50" y="86.91" font-size="7.00pt" font-weight="normal" font-style="normal" fill="rgb(110,110,110)" text-anchor="end" dominant-baseline="central">0,3</text>
+  <text x="47.50" y="55.64" font-size="7.00pt" font-weight="normal" font-style="normal" fill="rgb(110,110,110)" text-anchor="end" dominant-baseline="central">0,4</text>
+  <text x="63.02" y="216.00" font-size="7.00pt" font-weight="normal" font-style="normal" fill="rgb(110,110,110)" text-anchor="middle" dominant-baseline="hanging">0</text>
+  <text x="94.52" y="216.00" font-size="7.00pt" font-weight="normal" font-style="normal" fill="rgb(110,110,110)" text-anchor="middle" dominant-baseline="hanging">1</text>
+  <text x="126.02" y="216.00" font-size="7.00pt" font-weight="normal" font-style="normal" fill="rgb(110,110,110)" text-anchor="middle" dominant-baseline="hanging">2</text>
+  <text x="157.51" y="216.00" font-size="7.00pt" font-weight="normal" font-style="normal" fill="rgb(110,110,110)" text-anchor="middle" dominant-baseline="hanging">3</text>
+  <text x="189.01" y="216.00" font-size="7.00pt" font-weight="normal" font-style="normal" fill="rgb(110,110,110)" text-anchor="middle" dominant-baseline="hanging">4</text>
+  <text x="220.50" y="216.00" font-size="7.00pt" font-weight="normal" font-style="normal" fill="rgb(110,110,110)" text-anchor="middle" dominant-baseline="hanging">5</text>
+  <text x="252.00" y="216.00" font-size="7.00pt" font-weight="normal" font-style="normal" fill="rgb(110,110,110)" text-anchor="middle" dominant-baseline="hanging">6</text>
+  <text x="283.50" y="216.00" font-size="7.00pt" font-weight="normal" font-style="normal" fill="rgb(110,110,110)" text-anchor="middle" dominant-baseline="hanging">7</text>
+  <text x="314.99" y="216.00" font-size="7.00pt" font-weight="normal" font-style="normal" fill="rgb(110,110,110)" text-anchor="middle" dominant-baseline="hanging">8</text>
+  <text x="346.49" y="216.00" font-size="7.00pt" font-weight="normal" font-style="normal" fill="rgb(110,110,110)" text-anchor="middle" dominant-baseline="hanging">9</text>
+  <text x="377.98" y="216.00" font-size="7.00pt" font-weight="normal" font-style="normal" fill="rgb(110,110,110)" text-anchor="middle" dominant-baseline="hanging">10</text>
+  <text x="409.48" y="216.00" font-size="7.00pt" font-weight="normal" font-style="normal" fill="rgb(110,110,110)" text-anchor="middle" dominant-baseline="hanging">11</text>
+  <text x="440.98" y="216.00" font-size="7.00pt" font-weight="normal" font-style="normal" fill="rgb(110,110,110)" text-anchor="middle" dominant-baseline="hanging">12</text>
+  <text x="52.00" y="224.00" font-size="6.80pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">Rezago (semanas)</text>
+  <text x="30.00" y="40.00" font-size="7.00pt" font-weight="bold" font-style="normal" fill="rgb(110,110,110)" text-anchor="end" dominant-baseline="central">r</text>
+  <path d="M 52.00 180.73 L 452.00 180.73" stroke="rgb(110,110,110)" stroke-width="0.80" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke-dasharray="3 2"/>
+  <path d="M 52.00 150.39 L 452.00 150.39" stroke="rgb(185,185,185)" stroke-width="0.70" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke-dasharray="3 2"/>
+  <path d="M 52.00 211.06 L 452.00 211.06" stroke="rgb(185,185,185)" stroke-width="0.70" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke-dasharray="3 2"/>
+  <text x="446.00" y="142.39" font-size="5.80pt" font-weight="normal" font-style="normal" fill="rgb(110,110,110)" text-anchor="end" dominant-baseline="hanging">IC 95 %</text>
+  <path d="M 63.02 130.69 L 94.52 105.67 L 126.02 80.65 L 157.51 61.89 L 189.01 68.15 L 220.50 83.78 L 252.00 102.55 L 283.50 121.31 L 314.99 140.07 L 346.49 155.71 L 377.98 168.22 L 409.48 177.60 L 440.98 186.98" stroke="rgb(0,121,140)" stroke-width="1.10" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <rect x="61.94" y="129.61" width="2.16" height="2.16" fill="white" stroke="rgb(0,121,140)" stroke-width="0.80"/>
+  <rect x="93.44" y="104.59" width="2.16" height="2.16" fill="white" stroke="rgb(0,121,140)" stroke-width="0.80"/>
+  <rect x="124.94" y="79.57" width="2.16" height="2.16" fill="white" stroke="rgb(0,121,140)" stroke-width="0.80"/>
+  <rect x="156.43" y="60.81" width="2.16" height="2.16" fill="white" stroke="rgb(0,121,140)" stroke-width="0.80"/>
+  <rect x="187.93" y="67.07" width="2.16" height="2.16" fill="white" stroke="rgb(0,121,140)" stroke-width="0.80"/>
+  <rect x="219.42" y="82.70" width="2.16" height="2.16" fill="white" stroke="rgb(0,121,140)" stroke-width="0.80"/>
+  <rect x="250.92" y="101.47" width="2.16" height="2.16" fill="white" stroke="rgb(0,121,140)" stroke-width="0.80"/>
+  <rect x="282.42" y="120.23" width="2.16" height="2.16" fill="white" stroke="rgb(0,121,140)" stroke-width="0.80"/>
+  <rect x="313.91" y="138.99" width="2.16" height="2.16" fill="white" stroke="rgb(0,121,140)" stroke-width="0.80"/>
+  <rect x="345.41" y="154.63" width="2.16" height="2.16" fill="white" stroke="rgb(0,121,140)" stroke-width="0.80"/>
+  <rect x="376.90" y="167.14" width="2.16" height="2.16" fill="white" stroke="rgb(0,121,140)" stroke-width="0.80"/>
+  <rect x="408.40" y="176.52" width="2.16" height="2.16" fill="white" stroke="rgb(0,121,140)" stroke-width="0.80"/>
+  <rect x="439.90" y="185.90" width="2.16" height="2.16" fill="white" stroke="rgb(0,121,140)" stroke-width="0.80"/>
+  <path d="M 63.02 165.09 L 94.52 152.58 L 126.02 136.95 L 157.51 115.05 L 189.01 93.16 L 220.50 83.78 L 252.00 90.04 L 283.50 105.67 L 314.99 124.44 L 346.49 143.20 L 377.98 158.84 L 409.48 171.35 L 440.98 183.85" stroke="rgb(214,126,44)" stroke-width="1.10" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <circle cx="63.02" cy="165.09" r="1.20" fill="white" stroke="rgb(214,126,44)" stroke-width="0.80"/>
+  <circle cx="94.52" cy="152.58" r="1.20" fill="white" stroke="rgb(214,126,44)" stroke-width="0.80"/>
+  <circle cx="126.02" cy="136.95" r="1.20" fill="white" stroke="rgb(214,126,44)" stroke-width="0.80"/>
+  <circle cx="157.51" cy="115.05" r="1.20" fill="white" stroke="rgb(214,126,44)" stroke-width="0.80"/>
+  <circle cx="189.01" cy="93.16" r="1.20" fill="white" stroke="rgb(214,126,44)" stroke-width="0.80"/>
+  <circle cx="220.50" cy="83.78" r="1.20" fill="white" stroke="rgb(214,126,44)" stroke-width="0.80"/>
+  <circle cx="252.00" cy="90.04" r="1.20" fill="white" stroke="rgb(214,126,44)" stroke-width="0.80"/>
+  <circle cx="283.50" cy="105.67" r="1.20" fill="white" stroke="rgb(214,126,44)" stroke-width="0.80"/>
+  <circle cx="314.99" cy="124.44" r="1.20" fill="white" stroke="rgb(214,126,44)" stroke-width="0.80"/>
+  <circle cx="346.49" cy="143.20" r="1.20" fill="white" stroke="rgb(214,126,44)" stroke-width="0.80"/>
+  <circle cx="377.98" cy="158.84" r="1.20" fill="white" stroke="rgb(214,126,44)" stroke-width="0.80"/>
+  <circle cx="409.48" cy="171.35" r="1.20" fill="white" stroke="rgb(214,126,44)" stroke-width="0.80"/>
+  <circle cx="440.98" cy="183.85" r="1.20" fill="white" stroke="rgb(214,126,44)" stroke-width="0.80"/>
+  <path d="M 63.02 155.71 L 94.52 140.07 L 126.02 124.44 L 157.51 105.67 L 189.01 96.29 L 220.50 102.55 L 252.00 115.05 L 283.50 130.69 L 314.99 146.33 L 346.49 161.96 L 377.98 174.47 L 409.48 183.85 L 440.98 190.11" stroke="rgb(31,78,121)" stroke-width="1.10" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <polygon points="63.02,154.39 61.70,156.79 64.34,156.79" fill="white" stroke="rgb(31,78,121)" stroke-width="0.80"/>
+  <polygon points="94.52,138.75 93.20,141.15 95.84,141.15" fill="white" stroke="rgb(31,78,121)" stroke-width="0.80"/>
+  <polygon points="126.02,123.12 124.70,125.52 127.34,125.52" fill="white" stroke="rgb(31,78,121)" stroke-width="0.80"/>
+  <polygon points="157.51,104.35 156.19,106.75 158.83,106.75" fill="white" stroke="rgb(31,78,121)" stroke-width="0.80"/>
+  <polygon points="189.01,94.97 187.69,97.37 190.33,97.37" fill="white" stroke="rgb(31,78,121)" stroke-width="0.80"/>
+  <polygon points="220.50,101.23 219.18,103.63 221.82,103.63" fill="white" stroke="rgb(31,78,121)" stroke-width="0.80"/>
+  <polygon points="252.00,113.73 250.68,116.13 253.32,116.13" fill="white" stroke="rgb(31,78,121)" stroke-width="0.80"/>
+  <polygon points="283.50,129.37 282.18,131.77 284.82,131.77" fill="white" stroke="rgb(31,78,121)" stroke-width="0.80"/>
+  <polygon points="314.99,145.01 313.67,147.41 316.31,147.41" fill="white" stroke="rgb(31,78,121)" stroke-width="0.80"/>
+  <polygon points="346.49,160.64 345.17,163.04 347.81,163.04" fill="white" stroke="rgb(31,78,121)" stroke-width="0.80"/>
+  <polygon points="377.98,173.15 376.66,175.55 379.30,175.55" fill="white" stroke="rgb(31,78,121)" stroke-width="0.80"/>
+  <polygon points="409.48,182.53 408.16,184.93 410.80,184.93" fill="white" stroke="rgb(31,78,121)" stroke-width="0.80"/>
+  <polygon points="440.98,188.79 439.66,191.19 442.30,191.19" fill="white" stroke="rgb(31,78,121)" stroke-width="0.80"/>
+  <text x="60.00" y="187.61" font-size="5.90pt" font-weight="normal" font-style="normal" fill="rgb(110,110,110)" text-anchor="start" dominant-baseline="hanging">máximo de precipitación: r = 0,38 (3 sem)</text>
+  <text x="60.00" y="198.87" font-size="5.90pt" font-weight="normal" font-style="normal" fill="rgb(110,110,110)" text-anchor="start" dominant-baseline="hanging">máximo de temperatura: r = 0,31 (5 sem)</text>
+</svg>

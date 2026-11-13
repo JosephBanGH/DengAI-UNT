@@ -66,6 +66,16 @@ def main() -> None:
     import uvicorn
 
     port = int(os.environ.get("PORT", "8000"))
+    for idx, arg in enumerate(sys.argv[1:], start=1):
+        if arg.isdigit():
+            port = int(arg)
+        elif arg.startswith("--port="):
+            port = int(arg.split("=", 1)[1])
+        elif arg in ("--port", "-p") and idx < len(sys.argv) - 1:
+            nxt = sys.argv[idx + 1]
+            if nxt.isdigit():
+                port = int(nxt)
+
     host = _default_host()
     reload_enabled = os.environ.get("RELOAD", "0") == "1"
     logger.info("Servidor en http://%s:%s (reload=%s)", host, port, reload_enabled)

@@ -165,22 +165,47 @@ if TORCH_AVAILABLE:
             self.cell_embed = nn.Embedding(height * width, 8)
             self.bias = nn.Linear(8, 1)
 
-        def forward(self, grid, cell):
+        def _forward_impl(self, grid, cell) -> Tuple[Any, Dict[str, Any]]:
             outputs = self.stack(grid)                    # lista de (B, C, H, W)
             stack = torch.stack(outputs, dim=1)           # (B, T, C, H, W)
             batch, steps, channels, height, width = stack.shape
-            # Atención temporal: puntaje por paso y por cabeza, promediado espacialmente.
+            # Atención temporal multi-cabezal: puntaje por paso y por cabeza, promediado espacialmente.
             scores = self.temporal_score(stack.reshape(batch * steps, channels, height, width))
             scores = scores.reshape(batch, steps, -1, height * width).mean(-1)  # (B, T, heads)
+            temporal_head_weights = torch.softmax(scores, dim=1)                # (B, T, heads)
             weights = torch.softmax(scores.mean(-1), dim=1)                     # (B, T)
             weighted = (stack * weights[:, :, None, None, None]).sum(1)         # (B, C, H, W)
-            # Atención espacial: resalta las celdas relevantes para el pronóstico.
+            # Atención espacial monocanal: resalta las celdas relevantes para el pronóstico.
             spatial = torch.softmax(self.spatial_score(weighted).flatten(1), dim=1)
+            spatial_map = spatial.reshape(batch, height, width)                 # (B, H, W)
             raw = self.head(weighted).flatten(1)
             local = raw.gather(1, cell.unsqueeze(1)).squeeze(1)
             attended = (raw * spatial).sum(1)
             emb = self.bias(self.cell_embed(cell)).squeeze(1)
-            return F.softplus(local + attended + emb)
+            prediction = F.softplus(local + attended + emb)
+            attention = {
+                "temporal_weights": weights,
+                "temporal_head_weights": temporal_head_weights,
+                "temporal_scores": scores,
+                "spatial_weights": spatial_map,
+            }
+            return prediction, attention
+
+        def forward(self, grid, cell, return_attention: bool = False):
+            prediction, attention = self._forward_impl(grid, cell)
+            if not self.training:
+                self._last_attention = {key: value.detach().cpu() for key, value in attention.items()}
+            if return_attention:
+                return prediction, attention
+            return prediction
+
+        def forward_with_attention(self, grid, cell) -> Tuple[Any, Dict[str, Any]]:
+            """Ejecuta el pase hacia adelante devolviendo predicción y pesos de atención."""
+            return self.forward(grid, cell, return_attention=True)
+
+        def get_last_attention(self) -> Optional[Dict[str, Any]]:
+            """Retorna los últimos pesos de atención capturados en modo evaluación."""
+            return getattr(self, "_last_attention", None)
 
 
 # --------------------------------------------------------------------------------------
@@ -425,6 +450,39 @@ class ConvLSTMAttentionForecaster(_TorchTrainerMixin, BaseForecaster):
 
     def predict(self, data: ModelData) -> np.ndarray:
         return _predict_grid(self, self.net, data)
+
+    def predict_with_attention(self, data: ModelData) -> Tuple[np.ndarray, Dict[str, np.ndarray]]:
+        """Predice y captura pesos reales de atención temporal y espacial."""
+        torch = _require_torch()
+        device = next(self.net.parameters()).device if list(self.net.parameters()) else torch.device("cpu")
+
+        self.net.eval()
+        grid = torch.as_tensor(data.grid, dtype=torch.float32).permute(0, 1, 4, 2, 3).contiguous()
+        cell = torch.as_tensor(data.cell, dtype=torch.long)
+        preds = []
+        attn_chunks: Dict[str, List[np.ndarray]] = {
+            "temporal_weights": [],
+            "temporal_head_weights": [],
+            "temporal_scores": [],
+            "spatial_weights": [],
+        }
+        with torch.no_grad():
+            for start in range(0, len(cell), 128):
+                g = grid[start : start + 128].to(device)
+                c = cell[start : start + 128].to(device)
+                pred, attn = self.net.forward_with_attention(grid=g, cell=c)
+                preds.append(pred.detach().cpu())
+                for key in attn_chunks:
+                    attn_chunks[key].append(attn[key].detach().cpu().numpy())
+
+        predictions = np.clip(torch.cat(preds).numpy(), 0, None)
+        attention = {key: np.concatenate(chunks, axis=0) for key, chunks in attn_chunks.items()}
+        return predictions, attention
+
+    def extract_attention(self, data: ModelData) -> Dict[str, np.ndarray]:
+        """Devuelve ``temporal_weights``, ``temporal_head_weights`` y ``spatial_weights``."""
+        _, attention = self.predict_with_attention(data)
+        return attention
 
     def training_history(self):
         return getattr(self, "_history", [])

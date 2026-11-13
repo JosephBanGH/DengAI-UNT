@@ -28,6 +28,7 @@ scikit-learn==1.7.2
 scipy==1.16.2
 xgboost==3.0.5
 shap==0.48.0
+lime==0.2.0.1
 optuna==4.5.0
 joblib==1.5.2
 shapely==2.2.0

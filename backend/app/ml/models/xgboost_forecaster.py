@@ -99,13 +99,17 @@ class XGBoostForecaster(BaseForecaster):
         booster = self.model.get_booster()
         gains = booster.get_score(importance_type="gain")
         names = list(train.feature_names)
-        self._importance = np.array([float(gains.get(n, 0.0)) for n in names], dtype=float)
+        self._importance = np.array(
+            [float(gains.get(n, gains.get(f"f{idx}", 0.0))) for idx, n in enumerate(names)],
+            dtype=float,
+        )
         return self
 
     def predict(self, data: ModelData) -> np.ndarray:
         if self.model is None:
             raise RuntimeError("El modelo no está entrenado")
-        pred = self.model.predict(data.X)
+        scale = float(getattr(self, "_base_score_scale", 1.0))
+        pred = self.model.predict(data.X) * scale
         return np.clip(pred, 0, None)
 
     def feature_importance(self) -> Optional[np.ndarray]:

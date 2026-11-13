@@ -2,10 +2,15 @@
 from __future__ import annotations
 
 import logging
+import sys
 import time
 import uuid
 from contextlib import asynccontextmanager
 from pathlib import Path
+
+_LIBS_DIR = Path(__file__).resolve().parents[2] / "libs"
+if _LIBS_DIR.is_dir() and str(_LIBS_DIR) not in sys.path:
+    sys.path.insert(0, str(_LIBS_DIR))
 
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError

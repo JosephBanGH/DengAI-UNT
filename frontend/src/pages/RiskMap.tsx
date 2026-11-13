@@ -4,8 +4,21 @@ import type { FeatureCollection } from "../api/types";
 import { PageHeader } from "../components/Layout";
 import { Choropleth } from "../components/Choropleth";
 import { BarList } from "../components/charts";
-import { Card, CardBody, CardHeader, EmptyState, ErrorAlert, Loading, RiskBadge, Tabs, formatDate, formatNumber } from "../components/ui";
+import {
+  Card,
+  CardBody,
+  CardHeader,
+  EmptyState,
+  ErrorAlert,
+  InterpretabilityCard,
+  Loading,
+  RiskBadge,
+  Tabs,
+  formatDate,
+  formatNumber,
+} from "../components/ui";
 import { describeError } from "../context/ToastContext";
+import { downloadCsv } from "../utils/export";
 
 type Mode = "risk" | "incidence";
 
@@ -108,12 +121,38 @@ export function RiskMapPage() {
                 selected={selected}
                 onSelect={(feature) => setSelected(String(feature.properties.code))}
               />
+              <InterpretabilityCard
+                title="Interpretabilidad Espacio-Temporal: Gradiente Ecológico y Altitudinal"
+                finding="Se observa fuerte segregación territorial: nula incidencia en distritos andinos de gran altitud (Santiago de Chuco, 3 120 msnm) frente a alta endemicidad en distritos costeros y valles (Chepén, Trujillo, Ascope)."
+                mechanism="Aedes aegypti posee una cota biológica estricta: a altitudes superiores a 2 200 m la temperatura media nocturna desciende por debajo de 12 °C, impidiendo el desarrollo embrionario y la supervivencia del vector adulto."
+                paperSnippet="La heterogeneidad geoespacial refleja una demarcación bioclimática inquebrantable, donde la altitud actúa como barrera ecológica natural frente al establecimiento del vector."
+              />
             </CardBody>
           </Card>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <Card>
-              <CardHeader title="Ranking territorial" subtitle={mode === "risk" ? "Por incidencia pronosticada" : "Por incidencia acumulada"} />
+              <CardHeader
+                title="Ranking territorial"
+                subtitle={mode === "risk" ? "Por incidencia pronosticada" : "Por incidencia acumulada"}
+                actions={
+                  ranking.length ? (
+                    <button
+                      className="btn btn-sm"
+                      onClick={() =>
+                        downloadCsv(
+                          `mapa_ranking_${mode}.csv`,
+                          ["distrito", "codigo", mode === "risk" ? "incidencia_pronosticada" : "incidencia_acumulada", "detalle"],
+                          ranking.map((r) => [r.label, r.code, r.value.toFixed(2), r.hint])
+                        )
+                      }
+                      title="Descargar ranking territorial en CSV"
+                    >
+                      Descargar CSV
+                    </button>
+                  ) : null
+                }
+              />
               <CardBody>
                 <BarList items={ranking} valueFormatter={(value) => value.toFixed(1)} />
               </CardBody>

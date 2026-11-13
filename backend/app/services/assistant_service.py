@@ -19,6 +19,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
+from app.ml.features import resolve_data_mode
 from app.ml.inference import latest_forecast, risk_thresholds
 from app.models.epi import DengueCase
 from app.models.geo import GeographicUnit
@@ -165,12 +166,18 @@ def _retrieve(documents: List[Document], question: str, top_k: int) -> List[Tupl
 
 
 def _live_facts(db: Session, district_code: Optional[str]) -> Dict[str, Any]:
-    latest_week = db.scalar(select(func.max(DengueCase.week_start)))
+    use_synthetic = resolve_data_mode(db) == "synthetic"
+    latest_week = db.scalar(
+        select(func.max(DengueCase.week_start)).where(DengueCase.is_synthetic.is_(use_synthetic))
+    )
     facts: Dict[str, Any] = {"week": str(latest_week) if latest_week else None}
     if latest_week:
         facts["cases_last_week"] = int(
             db.scalar(
-                select(func.coalesce(func.sum(DengueCase.confirmed_cases), 0)).where(DengueCase.week_start == latest_week)
+                select(func.coalesce(func.sum(DengueCase.confirmed_cases), 0)).where(
+                    DengueCase.week_start == latest_week,
+                    DengueCase.is_synthetic.is_(use_synthetic),
+                )
             )
             or 0
         )
@@ -208,7 +215,8 @@ def _live_facts(db: Session, district_code: Optional[str]) -> Dict[str, Any]:
             total = int(
                 db.scalar(
                     select(func.coalesce(func.sum(DengueCase.confirmed_cases), 0)).where(
-                        DengueCase.district_code == district_code
+                        DengueCase.district_code == district_code,
+                        DengueCase.is_synthetic.is_(use_synthetic),
                     )
                 )
                 or 0

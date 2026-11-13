@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Optional
 from sqlalchemy import and_, func, select
 from sqlalchemy.orm import Session
 
+from app.ml.features import resolve_data_mode
 from app.ml.inference import risk_thresholds
 from app.models.epi import DengueCase
 from app.models.geo import GeographicUnit
@@ -119,7 +120,10 @@ def risk_map(db: Session, *, horizon: Optional[int] = None) -> Dict[str, Any]:
 
 
 def incidence_map(db: Session, *, weeks: int = 4) -> Dict[str, Any]:
-    latest = db.scalar(select(func.max(DengueCase.week_start)))
+    use_synthetic = resolve_data_mode(db) == "synthetic"
+    latest = db.scalar(
+        select(func.max(DengueCase.week_start)).where(DengueCase.is_synthetic.is_(use_synthetic))
+    )
     if latest is None:
         return {"type": "FeatureCollection", "features": [], "metadata": {"window_weeks": weeks}}
     start = latest - timedelta(weeks=weeks)
@@ -127,7 +131,7 @@ def incidence_map(db: Session, *, weeks: int = 4) -> Dict[str, Any]:
         code: int(total or 0)
         for code, total in db.execute(
             select(DengueCase.district_code, func.sum(DengueCase.confirmed_cases))
-            .where(DengueCase.week_start > start)
+            .where(DengueCase.week_start > start, DengueCase.is_synthetic.is_(use_synthetic))
             .group_by(DengueCase.district_code)
         ).all()
     }
@@ -151,13 +155,25 @@ def territory_series(db: Session, district_code: str, *, weeks: int = 52) -> Dic
     unit = db.scalar(select(GeographicUnit).where(GeographicUnit.code == district_code))
     if unit is None:
         return {"district_code": district_code, "series": [], "unit": None}
-    latest = db.scalar(select(func.max(DengueCase.week_start)).where(DengueCase.district_code == district_code))
+    use_synthetic = resolve_data_mode(db) == "synthetic"
+    latest = db.scalar(
+        select(func.max(DengueCase.week_start)).where(
+            DengueCase.district_code == district_code,
+            DengueCase.is_synthetic.is_(use_synthetic),
+        )
+    )
     if latest is None:
         return {"district_code": district_code, "series": [], "unit": {"code": unit.code, "name": unit.name}}
     start = latest - timedelta(weeks=weeks)
     rows = db.execute(
         select(DengueCase.week_start, DengueCase.confirmed_cases)
-        .where(and_(DengueCase.district_code == district_code, DengueCase.week_start > start))
+        .where(
+            and_(
+                DengueCase.district_code == district_code,
+                DengueCase.week_start > start,
+                DengueCase.is_synthetic.is_(use_synthetic),
+            )
+        )
         .order_by(DengueCase.week_start)
     ).all()
     return {

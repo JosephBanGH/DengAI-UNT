@@ -86,6 +86,19 @@ def precision_recall_auc(y_true, prob, *, threshold: float) -> Optional[float]:
     return float(average_precision_score(binary, p))
 
 
+def roc_auc(y_true, prob, *, threshold: float) -> Optional[float]:
+    """AUC-ROC para clasificación de brote (definido por el umbral epidemiológico dado)."""
+    from sklearn.metrics import roc_auc_score
+
+    t, p = _clean(y_true, prob)
+    if len(t) == 0:
+        return None
+    binary = _risk_binary(t, threshold)
+    if binary.sum() == 0 or binary.sum() == len(binary):
+        return None
+    return float(roc_auc_score(binary, p))
+
+
 def sensitivity_specificity(y_true, prob, *, threshold: float, cut: Optional[float] = None) -> Dict[str, Optional[float]]:
     """Sensibilidad/especificidad al corte operativo por defecto (punto de Youden)."""
     t, p = _clean(y_true, prob)
@@ -105,6 +118,57 @@ def sensitivity_specificity(y_true, prob, *, threshold: float, cut: Optional[flo
     fn = int(((predicted == 0) & (binary == 1)).sum())
     fp = int(((predicted == 1) & (binary == 0)).sum())
     return {
+        "sensitivity": tp / (tp + fn) if (tp + fn) else None,
+        "specificity": tn / (tn + fp) if (tn + fp) else None,
+        "cut": cut,
+    }
+
+
+def classification_metrics(
+    y_true,
+    prob,
+    *,
+    threshold: float,
+    cut: Optional[float] = None,
+) -> Dict[str, Optional[float]]:
+    """Métricas de clasificación de brote del Anexo A (AUC_PR, AUC_ROC, F1, MCC, sensitivity, specificity)."""
+    from sklearn.metrics import f1_score, matthews_corrcoef, roc_curve
+
+    t, p = _clean(y_true, prob)
+    if len(t) == 0:
+        return {
+            "AUC_PR": None,
+            "AUC_ROC": None,
+            "F1": None,
+            "MCC": None,
+            "sensitivity": None,
+            "specificity": None,
+            "cut": cut,
+        }
+    binary = _risk_binary(t, threshold)
+    if binary.sum() == 0 or binary.sum() == len(binary):
+        return {
+            "AUC_PR": None,
+            "AUC_ROC": None,
+            "F1": None,
+            "MCC": None,
+            "sensitivity": None,
+            "specificity": None,
+            "cut": cut,
+        }
+    if cut is None:
+        fpr, tpr, thresholds = roc_curve(binary, p)
+        cut = float(thresholds[int(np.argmax(tpr - fpr))])
+    predicted = (p >= cut).astype(int)
+    tp = int(((predicted == 1) & (binary == 1)).sum())
+    tn = int(((predicted == 0) & (binary == 0)).sum())
+    fn = int(((predicted == 0) & (binary == 1)).sum())
+    fp = int(((predicted == 1) & (binary == 0)).sum())
+    return {
+        "AUC_PR": precision_recall_auc(t, p, threshold=threshold),
+        "AUC_ROC": roc_auc(t, p, threshold=threshold),
+        "F1": float(f1_score(binary, predicted, zero_division=0)),
+        "MCC": float(matthews_corrcoef(binary, predicted)),
         "sensitivity": tp / (tp + fn) if (tp + fn) else None,
         "specificity": tn / (tn + fp) if (tn + fp) else None,
         "cut": cut,
@@ -164,10 +228,13 @@ def evaluate_all(
         results["coverage"] = interval_coverage(y_true, lower, upper)
         results["WIS"] = winkler_score(y_true, lower, upper, alpha=1 - interval_level)
     if outbreak_threshold is not None:
-        results["AUC_PR"] = precision_recall_auc(y_true, y_pred, threshold=outbreak_threshold)
-        sens_spec = sensitivity_specificity(y_true, y_pred, threshold=outbreak_threshold)
-        results["sensitivity"] = sens_spec["sensitivity"]
-        results["specificity"] = sens_spec["specificity"]
+        cls = classification_metrics(y_true, y_pred, threshold=outbreak_threshold)
+        results["AUC_PR"] = cls["AUC_PR"]
+        results["AUC_ROC"] = cls["AUC_ROC"]
+        results["F1"] = cls["F1"]
+        results["MCC"] = cls["MCC"]
+        results["sensitivity"] = cls["sensitivity"]
+        results["specificity"] = cls["specificity"]
         # Brier: probabilidad calibrada aproximada con la media móvil de la predicción.
         t, p = _clean(y_true, y_pred)
         if len(t):

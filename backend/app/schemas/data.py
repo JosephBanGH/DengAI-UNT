@@ -189,3 +189,35 @@ class QualitySummary(BaseModel):
     anomalies: int
     synthetic_share_pct: float
     checks: List[DataQualityOut] = Field(default_factory=list)
+
+
+class DictionaryUpdateEntry(BaseModel):
+    description: str = Field(..., min_length=2, max_length=500)
+    unit: str = Field(default="", max_length=50)
+    source: str = Field(default="", max_length=100)
+
+
+class GroupValidationResponse(BaseModel):
+    audited_at: str
+    dataset_id: Optional[int] = None
+    dataset_name: str
+    total_records: int
+    is_synthetic: bool
+    data_mode: str
+    groups_summary: Dict[str, Any]
+    partitions_audit: Dict[str, Any]
+    leakage_risk: Dict[str, Any]
+    methodological_recommendations: List[str]
+
+
+class DatasetStatisticsResponse(BaseModel):
+    generated_at: str
+    dataset_id: Optional[int] = None
+    dataset_name: str
+    total_records: int
+    is_synthetic: bool
+    univariate_statistics: List[Dict[str, Any]]
+    correlations: List[Dict[str, Any]]
+    district_breakdown: List[Dict[str, Any]]
+    automated_explanations: List[Dict[str, Any]]
+

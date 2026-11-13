@@ -263,6 +263,60 @@ def compare(
     return comparison_service.compare(db, horizon=horizon)
 
 
+@router.get("/artifacts", summary="Catálogo de artefactos experimentales descargables")
+def list_artifacts(auth: AuthContext = Depends(require_permissions("ml:read"))):
+    return {
+        "artifacts": comparison_service.list_artifact_catalog(),
+        "interpretations": comparison_service.build_epidemiological_interpretations(),
+    }
+
+
+@router.get("/artifacts/{filename}", summary="Descargar tabla, figura (600 DPI / SVG), JSON o paquete ZIP experimental")
+def download_artifact(
+    filename: str,
+    auth: AuthContext = Depends(require_permissions("ml:read")),
+):
+    import pathlib
+    from fastapi.responses import FileResponse
+    from app.core.config import PROJECT_DIR
+
+    # Sanitizar nombre de archivo para prevenir Path Traversal
+    safe_name = pathlib.Path(filename).name
+    if not safe_name or safe_name != filename:
+        raise ValidationError("Nombre de archivo inválido.")
+
+    exp_dir = PROJECT_DIR / "data" / "artifacts" / "experimentos"
+    fig_dir = PROJECT_DIR / "materiales-manuscrito" / "figuras"
+
+    candidate_paths = [
+        exp_dir / safe_name,
+        fig_dir / safe_name,
+        PROJECT_DIR / safe_name,
+    ]
+
+    target_path = None
+    for p in candidate_paths:
+        if p.exists() and p.is_file():
+            target_path = p
+            break
+
+    if target_path is None:
+        raise NotFoundError("El archivo de artefacto no se encuentra en el servidor.")
+
+    ext = target_path.suffix.lower()
+    media_types = {
+        ".csv": "text/csv; charset=utf-8",
+        ".json": "application/json; charset=utf-8",
+        ".png": "image/png",
+        ".svg": "image/svg+xml",
+        ".zip": "application/zip",
+        ".pdf": "application/pdf",
+        ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    }
+    media_type = media_types.get(ext, "application/octet-stream")
+    return FileResponse(target_path, media_type=media_type, filename=safe_name)
+
+
 @router.get("/explain/{district_code}", response_model=ExplanationResponse, summary="Explicación de la predicción por distrito")
 def explain(
     district_code: str,

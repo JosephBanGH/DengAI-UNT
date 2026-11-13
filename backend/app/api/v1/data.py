@@ -20,7 +20,10 @@ from app.schemas.data import (
     DataSourceOut,
     DatasetBuildRequest,
     DatasetOut,
+    DatasetStatisticsResponse,
     DataQualityOut,
+    DictionaryUpdateEntry,
+    GroupValidationResponse,
     ImportJobOut,
     ImportPreview,
     ImportRowErrorOut,
@@ -31,7 +34,8 @@ from app.schemas.data import (
     RealIngestResponse,
 )
 from app.services import audit as audit_service
-from app.services import data_service, dataset_service, real_data_service
+from app.services import data_service, dataset_service, real_data_service, statistics_service, validation_service
+
 
 router = APIRouter(tags=["M05 Datos · M06 Pipeline · M16 Reproducibilidad"])
 
@@ -260,3 +264,79 @@ def dataset_dictionary(dataset_id: int, db: Session = Depends(get_db), auth: Aut
 @router.get("/datasets/{dataset_id}", response_model=DatasetOut, summary="Detalle de un conjunto de datos")
 def get_dataset(dataset_id: int, db: Session = Depends(get_db), auth: AuthContext = Depends(require_permissions("datasets:read"))):
     return dataset_service.get_dataset(db, dataset_id)
+
+
+@router.put(
+    "/datasets/{dataset_id}/dictionary/{column}",
+    response_model=DataDictionaryEntry,
+    summary="Actualizar metadatos de una variable del diccionario",
+)
+def update_dictionary_entry(
+    dataset_id: int,
+    column: str,
+    payload: DictionaryUpdateEntry,
+    db: Session = Depends(get_db),
+    auth: AuthContext = Depends(require_permissions("datasets:write")),
+):
+    return dataset_service.update_data_dictionary_entry(
+        db,
+        dataset_id=dataset_id,
+        column=column,
+        description=payload.description,
+        unit=payload.unit,
+        source=payload.source,
+        actor=auth.user.email,
+    )
+
+
+@router.get(
+    "/data/group-validation",
+    response_model=GroupValidationResponse,
+    summary="Auditoría de validación de grupos y prevención de fuga de información (Panel Activo)",
+)
+def group_validation_active_panel(
+    mode: Optional[str] = Query(None, pattern="^(auto|synthetic|real)$"),
+    db: Session = Depends(get_db),
+    auth: AuthContext = Depends(require_permissions("data:read")),
+):
+    return validation_service.audit_group_validation(db, mode=mode)
+
+
+@router.get(
+    "/datasets/{dataset_id}/group-validation",
+    response_model=GroupValidationResponse,
+    summary="Auditoría de validación de grupos y prevención de fuga de información (Conjunto Versionado)",
+)
+def group_validation_dataset(
+    dataset_id: int,
+    db: Session = Depends(get_db),
+    auth: AuthContext = Depends(require_permissions("datasets:read")),
+):
+    return validation_service.audit_group_validation(db, dataset_id=dataset_id)
+
+
+@router.get(
+    "/data/statistics",
+    response_model=DatasetStatisticsResponse,
+    summary="Estadística descriptiva multivariable y explicabilidad en lenguaje natural (Panel Activo)",
+)
+def dataset_statistics_active_panel(
+    mode: Optional[str] = Query(None, pattern="^(auto|synthetic|real)$"),
+    db: Session = Depends(get_db),
+    auth: AuthContext = Depends(require_permissions("data:read")),
+):
+    return statistics_service.compute_dataset_statistics(db, mode=mode)
+
+
+@router.get(
+    "/datasets/{dataset_id}/statistics",
+    response_model=DatasetStatisticsResponse,
+    summary="Estadística descriptiva multivariable y explicabilidad en lenguaje natural (Conjunto Versionado)",
+)
+def dataset_statistics_dataset(
+    dataset_id: int,
+    db: Session = Depends(get_db),
+    auth: AuthContext = Depends(require_permissions("datasets:read")),
+):
+    return statistics_service.compute_dataset_statistics(db, dataset_id=dataset_id)
+

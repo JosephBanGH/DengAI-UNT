@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from "react";
+import { useState, type CSSProperties, type ReactNode } from "react";
 import { Icon } from "./Icons";
 
 export function Card({ children, className = "", style }: { children: ReactNode; className?: string; style?: CSSProperties }) {
@@ -258,4 +258,52 @@ export function toQuery(params: Record<string, string | number | undefined | nul
   });
   const text = search.toString();
   return text ? `?${text}` : "";
+}
+
+export function InterpretabilityCard({
+  title = "Interpretabilidad y Explicabilidad Científica / Epidemiológica",
+  finding,
+  mechanism,
+  paperSnippet,
+}: {
+  title?: string;
+  finding: string;
+  mechanism: string;
+  paperSnippet?: string;
+}) {
+  const [copied, setCopied] = useState(false);
+  const copy = () => {
+    if (!paperSnippet) return;
+    navigator.clipboard.writeText(paperSnippet).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    });
+  };
+
+  return (
+    <div className="card card-pad" style={{ background: "#f8fafc", borderLeft: "4px solid #0b5d6e", marginTop: 10 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6, flexWrap: "wrap", gap: 6 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <span style={{ fontSize: 13, fontWeight: 600, color: "#0b5d6e" }}>{title}</span>
+          <span className="badge badge-neutral" style={{ fontSize: 10 }}>Uso en Manuscrito</span>
+        </div>
+        {paperSnippet ? (
+          <button className="btn btn-sm btn-ghost" onClick={copy} style={{ padding: "2px 8px", fontSize: 11 }}>
+            {copied ? "✓ Copiado al portapapeles" : "Copiar texto para artículo"}
+          </button>
+        ) : null}
+      </div>
+      <p className="small" style={{ margin: "0 0 6px 0" }}>
+        <strong>Hallazgo cuantitativo:</strong> {finding}
+      </p>
+      <p className="small muted" style={{ margin: "0 0 6px 0" }}>
+        <strong>Mecanismo biofísico / epidemiológico:</strong> {mechanism}
+      </p>
+      {paperSnippet ? (
+        <blockquote style={{ margin: 0, padding: "6px 10px", background: "#f1f5f9", borderRadius: 4, fontSize: 11.5, color: "#334155", fontStyle: "italic", borderLeft: "2px solid #cbd5e1" }}>
+          «{paperSnippet}»
+        </blockquote>
+      ) : null}
+    </div>
+  );
 }

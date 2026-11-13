@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="178.0mm" height="116.0mm" viewBox="0 0 504.57 328.82">
+  <style>
+    text { font-family: "Arial", "Helvetica", sans-serif; }
+  </style>
+  <rect x="0" y="0" width="504.57" height="328.82" fill="white" />
+  <text x="8.00" y="3.00" font-size="8.40pt" font-weight="bold" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">Sistema de predicción espacio-temporal y alerta temprana de dengue (SP-01)</text>
+  <rect x="8.00" y="14.00" width="117.00" height="44.00" fill="#EEF3F8" stroke="rgb(31,78,121)" stroke-width="0.80"/>
+  <text x="12.00" y="19.00" font-size="7.20pt" font-weight="bold" font-style="normal" fill="rgb(31,78,121)" text-anchor="start" dominant-baseline="hanging">Vigilancia epidemiológica</text>
+  <text x="12.00" y="29.00" font-size="6.30pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">MINSA / CDC Perú</text>
+  <text x="12.00" y="37.20" font-size="6.30pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">casos por distrito-semana</text>
+  <text x="12.00" y="45.40" font-size="6.30pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">agregados, ISO 8601</text>
+  <rect x="131.50" y="14.00" width="117.00" height="44.00" fill="#EEF3F8" stroke="rgb(31,78,121)" stroke-width="0.80"/>
+  <text x="135.50" y="19.00" font-size="7.20pt" font-weight="bold" font-style="normal" fill="rgb(31,78,121)" text-anchor="start" dominant-baseline="hanging">Meteorología</text>
+  <text x="135.50" y="29.00" font-size="6.30pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">NASA POWER</text>
+  <text x="135.50" y="37.20" font-size="6.30pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">T2M · RH2M · PRECTOTCORR</text>
+  <text x="135.50" y="45.40" font-size="6.30pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">semanal, 0,5° × 0,625°</text>
+  <rect x="255.00" y="14.00" width="117.00" height="44.00" fill="#EEF3F8" stroke="rgb(31,78,121)" stroke-width="0.80"/>
+  <text x="259.00" y="19.00" font-size="7.20pt" font-weight="bold" font-style="normal" fill="rgb(31,78,121)" text-anchor="start" dominant-baseline="hanging">Precipitación</text>
+  <text x="259.00" y="29.00" font-size="6.30pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">CHIRPS v2.0</text>
+  <text x="259.00" y="37.20" font-size="6.30pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">validación de lluvia</text>
+  <text x="259.00" y="45.40" font-size="6.30pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">0,05°, pentadal</text>
+  <rect x="378.50" y="14.00" width="117.00" height="44.00" fill="#EEF3F8" stroke="rgb(31,78,121)" stroke-width="0.80"/>
+  <text x="382.50" y="19.00" font-size="7.20pt" font-weight="bold" font-style="normal" fill="rgb(31,78,121)" text-anchor="start" dominant-baseline="hanging">Población y territorio</text>
+  <text x="382.50" y="29.00" font-size="6.30pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">WorldPop · INEI</text>
+  <text x="382.50" y="37.20" font-size="6.30pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">población, área, altitud</text>
+  <text x="382.50" y="45.40" font-size="6.30pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">centroides distritales</text>
+  <rect x="8.00" y="72.00" width="492.00" height="40.00" fill="#EEF3F8" stroke="rgb(31,78,121)" stroke-width="0.80"/>
+  <text x="12.00" y="77.00" font-size="7.20pt" font-weight="bold" font-style="normal" fill="rgb(31,78,121)" text-anchor="start" dominant-baseline="hanging">Capa de datos, control de calidad y trazabilidad</text>
+  <text x="12.00" y="87.00" font-size="6.30pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">catálogo de fuentes con licencia  ·  validación fila a fila  ·  deduplicación distrito-semana  ·  imputación temporal (ffill/bfill)</text>
+  <text x="12.00" y="95.20" font-size="6.30pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">anomalías por puntaje z  ·  versionado del panel con checksum SHA-256  ·  diccionario de 59 variables</text>
+  <text x="492.00" y="102.00" font-size="6.40pt" font-weight="bold" font-style="normal" fill="rgb(31,78,121)" text-anchor="end" dominant-baseline="hanging">5 740 distrito-semana</text>
+  <path d="M 66.00 58.00 L 66.00 69.00" stroke="rgb(110,110,110)" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 66.00 69.00 L 64.37 65.35" stroke="rgb(110,110,110)" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 66.00 69.00 L 67.63 65.35" stroke="rgb(110,110,110)" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 250.00 58.00 L 250.00 69.00" stroke="rgb(110,110,110)" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 250.00 69.00 L 248.37 65.35" stroke="rgb(110,110,110)" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 250.00 69.00 L 251.63 65.35" stroke="rgb(110,110,110)" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 434.00 58.00 L 434.00 69.00" stroke="rgb(110,110,110)" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 434.00 69.00 L 432.37 65.35" stroke="rgb(110,110,110)" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 434.00 69.00 L 435.63 65.35" stroke="rgb(110,110,110)" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <rect x="8.00" y="126.00" width="492.00" height="94.00" fill="white" stroke="rgb(21,47,76)" stroke-width="0.80"/>
+  <text x="12.00" y="131.00" font-size="7.60pt" font-weight="bold" font-style="normal" fill="rgb(21,47,76)" text-anchor="start" dominant-baseline="hanging">Motor de aprendizaje</text>
+  <rect x="12.00" y="141.00" width="168.00" height="73.00" fill="#FBF7EE" stroke="rgb(214,126,44)" stroke-width="0.70"/>
+  <text x="16.00" y="145.00" font-size="7.00pt" font-weight="bold" font-style="normal" fill="rgb(214,126,44)" text-anchor="start" dominant-baseline="hanging">Ingeniería de variables</text>
+  <text x="16.00" y="156.00" font-size="6.20pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">rezagos de casos 1–12 sem</text>
+  <text x="16.00" y="164.20" font-size="6.20pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">medias móviles 4 · 8 · 12 sem</text>
+  <text x="16.00" y="172.40" font-size="6.20pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">clima con rezago 0–4 sem</text>
+  <text x="16.00" y="180.60" font-size="6.20pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">vecindad espacial (t−1)</text>
+  <text x="16.00" y="188.80" font-size="6.20pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">armónicos estacionales (2)</text>
+  <text x="16.00" y="197.00" font-size="6.20pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">tensor 12 × 4 × 5 × 5</text>
+  <text x="16.00" y="206.00" font-size="6.00pt" font-weight="normal" font-style="normal" fill="rgb(110,110,110)" text-anchor="start" dominant-baseline="hanging">escalado ajustado solo con train</text>
+  <rect x="188.00" y="141.00" width="58.00" height="21.00" fill="#EAF1F7" stroke="rgb(31,78,121)" stroke-width="0.70"/>
+  <text x="217.00" y="151.50" font-size="5.60pt" font-weight="bold" font-style="normal" fill="rgb(31,78,121)" text-anchor="middle" dominant-baseline="central">XGBoost</text>
+  <rect x="250.40" y="141.00" width="58.00" height="21.00" fill="#EAF1F7" stroke="rgb(31,78,121)" stroke-width="0.70"/>
+  <text x="279.40" y="151.50" font-size="5.60pt" font-weight="bold" font-style="normal" fill="rgb(31,78,121)" text-anchor="middle" dominant-baseline="central">LSTM</text>
+  <rect x="312.80" y="141.00" width="58.00" height="21.00" fill="#EAF1F7" stroke="rgb(31,78,121)" stroke-width="0.70"/>
+  <text x="341.80" y="151.50" font-size="5.60pt" font-weight="bold" font-style="normal" fill="rgb(31,78,121)" text-anchor="middle" dominant-baseline="central">ConvLSTM</text>
+  <rect x="375.20" y="141.00" width="58.00" height="21.00" fill="#EAF1F7" stroke="rgb(31,78,121)" stroke-width="0.70"/>
+  <text x="404.20" y="151.50" font-size="5.60pt" font-weight="bold" font-style="normal" fill="rgb(31,78,121)" text-anchor="middle" dominant-baseline="central">CNN-LSTM</text>
+  <rect x="437.60" y="141.00" width="58.00" height="21.00" fill="#EAF1F7" stroke="rgb(31,78,121)" stroke-width="0.70"/>
+  <text x="466.60" y="151.50" font-size="4.90pt" font-weight="bold" font-style="normal" fill="rgb(31,78,121)" text-anchor="middle" dominant-baseline="central">ConvLSTM-Attention</text>
+  <rect x="188.00" y="168.00" width="308.00" height="46.00" fill="#F7F9FC" stroke="rgb(31,78,121)" stroke-width="0.60"/>
+  <text x="192.00" y="172.00" font-size="6.60pt" font-weight="bold" font-style="normal" fill="rgb(31,78,121)" text-anchor="start" dominant-baseline="hanging">Optimización y validación</text>
+  <text x="192.00" y="182.00" font-size="6.00pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">Optuna TPE + MedianPruner · 100 ensayos por modelo y horizonte</text>
+  <text x="192.00" y="190.20" font-size="6.00pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">partición walk-forward 26/26 semanas · retención geográfica de 4 distritos</text>
+  <text x="192.00" y="198.40" font-size="6.00pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">reentrenamiento train+validación · evaluación única sobre prueba</text>
+  <text x="192.00" y="206.60" font-size="6.00pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">intervalos por cuantiles residuales de validación (nivel 90 %)</text>
+  <path d="M 250.00 112.00 L 250.00 123.00" stroke="rgb(110,110,110)" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 250.00 123.00 L 248.37 119.35" stroke="rgb(110,110,110)" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 250.00 123.00 L 251.63 119.35" stroke="rgb(110,110,110)" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <rect x="8.00" y="232.00" width="117.00" height="44.00" fill="#F1F7F2" stroke="rgb(46,125,50)" stroke-width="0.80"/>
+  <text x="12.00" y="237.00" font-size="7.20pt" font-weight="bold" font-style="normal" fill="rgb(46,125,50)" text-anchor="start" dominant-baseline="hanging">Pronóstico</text>
+  <text x="12.00" y="247.00" font-size="6.30pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">horizontes 1 · 2 · 4 · 8 sem</text>
+  <text x="12.00" y="255.20" font-size="6.30pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">intervalo del 90 %</text>
+  <text x="12.00" y="263.40" font-size="6.30pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">incidencia por 100 000 hab</text>
+  <rect x="131.50" y="232.00" width="117.00" height="44.00" fill="#F1F7F2" stroke="rgb(46,125,50)" stroke-width="0.80"/>
+  <text x="135.50" y="237.00" font-size="7.20pt" font-weight="bold" font-style="normal" fill="rgb(46,125,50)" text-anchor="start" dominant-baseline="hanging">Clasificación de riesgo</text>
+  <text x="135.50" y="247.00" font-size="6.30pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">umbrales 5 / 20 / 50</text>
+  <text x="135.50" y="255.20" font-size="6.30pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">Bajo · Medio · Alto · Crítico</text>
+  <text x="135.50" y="263.40" font-size="6.30pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">justificación textual</text>
+  <rect x="255.00" y="232.00" width="117.00" height="44.00" fill="#F1F7F2" stroke="rgb(46,125,50)" stroke-width="0.80"/>
+  <text x="259.00" y="237.00" font-size="7.20pt" font-weight="bold" font-style="normal" fill="rgb(46,125,50)" text-anchor="start" dominant-baseline="hanging">Alerta temprana</text>
+  <text x="259.00" y="247.00" font-size="6.30pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">generación idempotente</text>
+  <text x="259.00" y="255.20" font-size="6.30pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">reconocimiento y cierre</text>
+  <text x="259.00" y="263.40" font-size="6.30pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">historial auditable</text>
+  <rect x="378.50" y="232.00" width="117.00" height="44.00" fill="#F1F7F2" stroke="rgb(46,125,50)" stroke-width="0.80"/>
+  <text x="382.50" y="237.00" font-size="7.20pt" font-weight="bold" font-style="normal" fill="rgb(46,125,50)" text-anchor="start" dominant-baseline="hanging">Comunicación</text>
+  <text x="382.50" y="247.00" font-size="6.30pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">reportes PDF · DOCX · XLSX</text>
+  <text x="382.50" y="255.20" font-size="6.30pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">mapas coropléticos</text>
+  <text x="382.50" y="263.40" font-size="6.30pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">16 informes operativos</text>
+  <path d="M 250.00 220.00 L 250.00 229.00" stroke="rgb(110,110,110)" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 250.00 229.00 L 248.37 225.35" stroke="rgb(110,110,110)" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 250.00 229.00 L 251.63 225.35" stroke="rgb(110,110,110)" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <rect x="8.00" y="290.00" width="492.00" height="34.00" fill="#F4F1F8" stroke="rgb(106,27,154)" stroke-width="0.80"/>
+  <text x="12.00" y="295.00" font-size="7.00pt" font-weight="bold" font-style="normal" fill="rgb(106,27,154)" text-anchor="start" dominant-baseline="hanging">Servicios transversales</text>
+  <text x="12.00" y="306.00" font-size="6.20pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">API REST (FastAPI)  ·  SPA React + TypeScript  ·  JWT y RBAC de mínimo privilegio</text>
+  <text x="12.00" y="315.00" font-size="6.20pt" font-weight="normal" font-style="normal" fill="rgb(33,33,33)" text-anchor="start" dominant-baseline="hanging">bitácora encadenada SHA-256  ·  orquestación n8n WF-01…WF-04  ·  SHAP  ·  asistente RAG  ·  PostgreSQL/PostGIS</text>
+  <path d="M 66.00 276.00 L 66.00 287.00" stroke="rgb(110,110,110)" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 66.00 287.00 L 64.37 283.35" stroke="rgb(110,110,110)" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 66.00 287.00 L 67.63 283.35" stroke="rgb(110,110,110)" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 250.00 276.00 L 250.00 287.00" stroke="rgb(110,110,110)" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 250.00 287.00 L 248.37 283.35" stroke="rgb(110,110,110)" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 250.00 287.00 L 251.63 283.35" stroke="rgb(110,110,110)" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 434.00 276.00 L 434.00 287.00" stroke="rgb(110,110,110)" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 434.00 287.00 L 432.37 283.35" stroke="rgb(110,110,110)" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 434.00 287.00 L 435.63 283.35" stroke="rgb(110,110,110)" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>

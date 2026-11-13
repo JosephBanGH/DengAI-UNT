@@ -211,6 +211,7 @@ def load_panel(
     )
     if not env.empty:
         env = env.rename(columns={"value": "population_density"}).drop(columns=["name"])
+        env = env.groupby(["district_code", "epi_year", "epi_week"], as_index=False)["population_density"].mean()
         panel = panel.merge(env, on=["district_code", "epi_year", "epi_week"], how="left")
     else:
         panel["population_density"] = panel["population"] / panel["area_km2"].replace(0, np.nan)
@@ -220,12 +221,13 @@ def load_panel(
         panel["population"] / panel["area_km2"].replace(0, np.nan)
     )
 
-    # Imputación temporal explícita (interpolación + vecino temporal), sin usar futuro.
+    # Imputación temporal estrictamente causal (solo forward-fill por distrito, sin usar futuro).
+    # Cualquier NaN inicial previo a la primera observación se imputa después con la media de entrenamiento.
     numeric_cols = [
         "temperature_mean", "temperature_max", "temperature_min", "humidity_mean",
         "precipitation_mm", "wind_speed", "solar_radiation",
     ]
-    panel[numeric_cols] = panel.groupby("district_code")[numeric_cols].ffill().bfill()
+    panel[numeric_cols] = panel.groupby("district_code")[numeric_cols].ffill()
 
     if panel["is_synthetic"].fillna(False).astype(bool).nunique() > 1:
         raise ValueError("El panel contiene una mezcla de filas reales y sintéticas; revise la ingesta.")
@@ -268,6 +270,8 @@ def _spatial_neighbours(panel: pd.DataFrame) -> pd.DataFrame:
 
 def build_features(panel_result: PanelResult, *, horizon: int, max_lag: int = LAG_WEEKS) -> pd.DataFrame:
     """Genera el marco supervisado: una fila por (distrito, semana de origen)."""
+    if int(horizon) < 1:
+        raise ValueError(f"El horizonte debe ser >= 1 para garantizar causalidad temporal; recibido {horizon}.")
     panel = panel_result.panel.copy()
     panel = panel.sort_values(["district_code", "week_start"])
 

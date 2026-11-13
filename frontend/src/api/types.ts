@@ -335,6 +335,124 @@ export interface DatasetItem {
   feature_schema: Record<string, unknown> | null;
 }
 
+export interface DataDictionaryItem {
+  column: string;
+  dtype: string;
+  description: string;
+  unit: string;
+  source: string;
+  nullable: boolean;
+}
+
+export interface GroupValidationCheck {
+  id: string;
+  title: string;
+  description: string;
+  status: "PASSED" | "FAILED" | "WARNING";
+  details: string;
+}
+
+export interface GroupValidationResult {
+  audited_at: string;
+  dataset_id: number | null;
+  dataset_name: string;
+  total_records: number;
+  is_synthetic: boolean;
+  data_mode: string;
+  groups_summary: {
+    districts_count: number;
+    weeks_count: number;
+    start_week: string;
+    end_week: string;
+    balance_ratio: number;
+    districts_detail: { code: string; name: string; province: string; records: number; pct: number }[];
+  };
+  partitions_audit: {
+    temporal_walk_forward: {
+      train_rows: number;
+      val_rows: number;
+      test_rows: number;
+      train_period: string;
+      val_period: string;
+      test_period: string;
+      overlap_weeks: number;
+      status: string;
+    };
+    spatial_block_cv: {
+      train_districts: string[];
+      val_districts: string[];
+      test_districts: string[];
+      overlap_districts: number;
+      status: string;
+    };
+  };
+  leakage_risk: {
+    risk_level: "LOW" | "MEDIUM" | "HIGH";
+    risk_score_pct: number;
+    total_checks: number;
+    passed_checks: number;
+    verifications: GroupValidationCheck[];
+  };
+  methodological_recommendations: string[];
+}
+
+export interface UnivariateStatistic {
+  variable: string;
+  unit: string;
+  count: number;
+  valid_count: number;
+  missing_count: number;
+  missing_pct: number;
+  mean: number | null;
+  std: number | null;
+  median: number | null;
+  min: number | null;
+  q25: number | null;
+  q75: number | null;
+  iqr: number | null;
+  max: number | null;
+  skewness: number | null;
+  kurtosis: number | null;
+}
+
+export interface BivariateCorrelation {
+  feature_x: string;
+  feature_y: string;
+  pearson: number;
+  pearson_p_value: number;
+  spearman: number;
+  spearman_p_value: number;
+  significant_05: boolean;
+}
+
+export interface StatisticalExplanation {
+  topic: string;
+  indicator: string;
+  behavior: string;
+  methodological_implication: string;
+  epistemic_caution: string;
+}
+
+export interface DatasetStatisticsResult {
+  generated_at: string;
+  dataset_id: number | null;
+  dataset_name: string;
+  total_records: number;
+  is_synthetic: boolean;
+  univariate_statistics: UnivariateStatistic[];
+  correlations: BivariateCorrelation[];
+  district_breakdown: {
+    district_code: string;
+    total_cases: number;
+    mean_cases_week: number;
+    max_cases_week: number;
+    mean_temp: number | null;
+    weeks_count: number;
+  }[];
+  automated_explanations: StatisticalExplanation[];
+}
+
+
 export interface DataSourceItem {
   id: number;
   code: string;
@@ -413,14 +531,44 @@ export interface Health {
 }
 
 export interface Comparison {
-  rows: { algorithm: string; split: string; horizon_weeks: number; metric: string; value: number; n_observations: number }[];
-  ranking: { algorithm: string; MAE: number; RMSE: number }[];
+  rows: { algorithm: string; split: string; horizon_weeks: number; metric: string; value: number; ci_lower?: number | null; ci_upper?: number | null; n_observations: number }[];
+  ranking: {
+    algorithm: string;
+    MAE: number;
+    MAE_ci_lower?: number | null;
+    MAE_ci_upper?: number | null;
+    RMSE: number;
+    RMSE_ci_lower?: number | null;
+    RMSE_ci_upper?: number | null;
+    MAPE?: number | null;
+    MASE?: number | null;
+    AUC_PR?: number | null;
+    sensitivity?: number | null;
+    specificity?: number | null;
+    Brier?: number | null;
+  }[];
   tests: Record<string, any>[];
   winner: string | null;
   winner_basis: string;
   horizon: number;
   n_observations: number;
   caveat: string;
+  artifacts?: {
+    filename: string;
+    title: string;
+    kind: string;
+    format: string;
+    description: string;
+    available: boolean;
+    size_bytes: number;
+    download_url: string;
+  }[];
+  interpretations?: {
+    id: string;
+    title: string;
+    summary: string;
+    epidemiological_rationale: string;
+  }[];
 }
 
 export interface ConfigEntry {

@@ -4,7 +4,13 @@ from __future__ import annotations
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, Field
+
+try:
+    import email_validator as _ev  # noqa: F401
+    from pydantic import EmailStr
+except ImportError:  # pragma: no cover
+    EmailStr = str  # type: ignore[misc,assignment]
 
 
 class LoginRequest(BaseModel):

@@ -162,3 +162,11 @@ class ModelComparison(BaseModel):
     tests: List[Dict[str, Any]]
     winner: Optional[str] = None
     winner_basis: str = ""
+    blocks: Optional[int] = None
+    block_unit: Optional[str] = None
+    assumptions: Optional[Dict[str, Any]] = None
+    horizon: int = 1
+    n_observations: int = 0
+    caveat: str = ""
+    artifacts: List[Dict[str, Any]] = Field(default_factory=list)
+    interpretations: List[Dict[str, Any]] = Field(default_factory=list)

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type RefObject } from "react";
 
 const PALETTE = ["#0b5d6e", "#17a2b8", "#0f766e", "#f59e0b", "#b3261e", "#6366f1"];
 
@@ -13,12 +13,14 @@ export function LineChart({
   yLabel,
   showArea = true,
   labelEvery = 8,
+  svgRef,
 }: {
   series: { name: string; color?: string; points: Point[] }[];
   height?: number;
   yLabel?: string;
   showArea?: boolean;
   labelEvery?: number;
+  svgRef?: RefObject<SVGSVGElement>;
 }) {
   const [hover, setHover] = useState<{ index: number; x: number; y: number } | null>(null);
   const width = 720;
@@ -50,7 +52,7 @@ export function LineChart({
 
   return (
     <div style={{ position: "relative" }}>
-      <svg viewBox={`0 0 ${width} ${height}`} style={{ width: "100%", height: "auto" }} role="img" aria-label="Serie temporal">
+      <svg ref={svgRef} viewBox={`0 0 ${width} ${height}`} style={{ width: "100%", height: "auto" }} role="img" aria-label="Serie temporal">
         {ticks.map((tick) => (
           <g key={tick}>
             <line className="chart-grid" x1={padding.left} x2={width - padding.right} y1={yFor(tick)} y2={yFor(tick)} />
@@ -152,7 +154,15 @@ export function BarList({
   );
 }
 
-export function Donut({ items, size = 168 }: { items: { label: string; value: number; color?: string }[]; size?: number }) {
+export function Donut({
+  items,
+  size = 168,
+  svgRef,
+}: {
+  items: { label: string; value: number; color?: string }[];
+  size?: number;
+  svgRef?: RefObject<SVGSVGElement>;
+}) {
   const total = items.reduce((sum, item) => sum + item.value, 0);
   if (!total) return <div className="empty-state">Sin distribución disponible.</div>;
   const radius = size / 2 - 12;
@@ -160,7 +170,7 @@ export function Donut({ items, size = 168 }: { items: { label: string; value: nu
   let offset = 0;
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 18, flexWrap: "wrap" }}>
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label="Distribución">
+      <svg ref={svgRef} width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label="Distribución">
         <g transform={`translate(${size / 2},${size / 2}) rotate(-90)`}>
           {items.map((item, index) => {
             const fraction = item.value / total;

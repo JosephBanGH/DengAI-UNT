@@ -7,6 +7,7 @@ from typing import Any, Dict, List, Optional
 from sqlalchemy import and_, func, select
 from sqlalchemy.orm import Session
 
+from app.ml.features import resolve_data_mode
 from app.models.epi import ClimateObservation, DataSource, DengueCase, ImportJob
 from app.models.geo import GeographicUnit
 from app.models.ml import Experiment, MetricResult, ModelVersion, Prediction, RiskClassification
@@ -14,10 +15,18 @@ from app.models.ops import Alert, Report, WorkflowExecution
 from app.models.security import UserSession
 
 
-def _window_cases(db: Session, start: date, end: date, codes: Optional[List[str]] = None) -> int:
+def _window_cases(
+    db: Session,
+    start: date,
+    end: date,
+    codes: Optional[List[str]] = None,
+    use_synthetic: Optional[bool] = None,
+) -> int:
     stmt = select(func.coalesce(func.sum(DengueCase.confirmed_cases), 0)).where(
         and_(DengueCase.week_start >= start, DengueCase.week_start <= end)
     )
+    if use_synthetic is not None:
+        stmt = stmt.where(DengueCase.is_synthetic.is_(use_synthetic))
     if codes:
         stmt = stmt.where(DengueCase.district_code.in_(codes))
     return int(db.scalar(stmt) or 0)
@@ -43,7 +52,10 @@ def overview(
     weeks: int = 52,
 ) -> Dict[str, Any]:
     codes = _resolve_districts(db, department, province, district)
-    latest_week = db.scalar(select(func.max(DengueCase.week_start)))
+    use_synthetic = resolve_data_mode(db) == "synthetic"
+    latest_week = db.scalar(
+        select(func.max(DengueCase.week_start)).where(DengueCase.is_synthetic.is_(use_synthetic))
+    )
     if latest_week is None:
         return {
             "generated_at": None,
@@ -65,16 +77,16 @@ def overview(
 
     current_start = latest_week - timedelta(weeks=12)
     previous_start = current_start - timedelta(weeks=12)
-    current_cases = _window_cases(db, current_start, latest_week, codes)
-    previous_cases = _window_cases(db, previous_start, current_start - timedelta(days=1), codes)
+    current_cases = _window_cases(db, current_start, latest_week, codes, use_synthetic=use_synthetic)
+    previous_cases = _window_cases(db, previous_start, current_start - timedelta(days=1), codes, use_synthetic=use_synthetic)
     change_pct = ((current_cases - previous_cases) / previous_cases * 100) if previous_cases else None
 
-    week_cases = _window_cases(db, latest_week - timedelta(days=6), latest_week, codes)
+    week_cases = _window_cases(db, latest_week - timedelta(days=6), latest_week, codes, use_synthetic=use_synthetic)
 
     series_start = latest_week - timedelta(weeks=weeks)
     series_stmt = (
         select(DengueCase.week_start, func.sum(DengueCase.confirmed_cases))
-        .where(DengueCase.week_start >= series_start)
+        .where(DengueCase.week_start >= series_start, DengueCase.is_synthetic.is_(use_synthetic))
         .group_by(DengueCase.week_start)
         .order_by(DengueCase.week_start)
     )
@@ -91,7 +103,11 @@ def overview(
             DengueCase.district_code,
             func.sum(DengueCase.confirmed_cases).label("total"),
         )
-        .where(DengueCase.week_start >= current_start, DengueCase.week_start <= latest_week)
+        .where(
+            DengueCase.week_start >= current_start,
+            DengueCase.week_start <= latest_week,
+            DengueCase.is_synthetic.is_(use_synthetic),
+        )
         .group_by(DengueCase.district_code)
         .order_by(func.sum(DengueCase.confirmed_cases).desc())
     )
@@ -146,14 +162,20 @@ def overview(
             func.avg(ClimateObservation.temperature_mean),
             func.avg(ClimateObservation.humidity_mean),
             func.avg(ClimateObservation.precipitation_mm),
-        ).where(ClimateObservation.week_start >= latest_week - timedelta(weeks=8))
+        ).where(
+            ClimateObservation.week_start >= latest_week - timedelta(weeks=8),
+            ClimateObservation.is_synthetic.is_(use_synthetic),
+        )
     )
     temp_avg, humidity_avg, precip_avg = db.execute(climate_stmt).one()
     baseline_stmt = select(
         func.avg(ClimateObservation.temperature_mean),
         func.avg(ClimateObservation.humidity_mean),
         func.avg(ClimateObservation.precipitation_mm),
-    ).where(ClimateObservation.week_start < latest_week - timedelta(weeks=8))
+    ).where(
+        ClimateObservation.week_start < latest_week - timedelta(weeks=8),
+        ClimateObservation.is_synthetic.is_(use_synthetic),
+    )
     temp_base, humidity_base, precip_base = db.execute(baseline_stmt).one()
 
     def _delta(current, baseline):
@@ -212,9 +234,26 @@ def overview(
         for source in source_rows
     ]
 
-    synthetic_rows = db.scalar(select(func.count()).select_from(DengueCase).where(DengueCase.is_synthetic.is_(True))) or 0
-    total_rows = db.scalar(select(func.count()).select_from(DengueCase)) or 0
-    last_import = db.scalar(select(ImportJob).order_by(ImportJob.started_at.desc()).limit(1))
+    synthetic_rows = (
+        db.scalar(
+            select(func.count())
+            .select_from(DengueCase)
+            .where(DengueCase.is_synthetic.is_(use_synthetic), DengueCase.is_synthetic.is_(True))
+        )
+        or 0
+    )
+    total_rows = (
+        db.scalar(
+            select(func.count()).select_from(DengueCase).where(DengueCase.is_synthetic.is_(use_synthetic))
+        )
+        or 0
+    )
+    last_import = db.scalar(
+        select(ImportJob)
+        .where(ImportJob.is_synthetic.is_(use_synthetic))
+        .order_by(ImportJob.started_at.desc())
+        .limit(1)
+    )
 
     kpis = [
         {
@@ -266,7 +305,7 @@ def overview(
     return {
         "generated_at": None,
         "data_freshness": latest_week,
-        "is_synthetic_data": bool(total_rows and synthetic_rows == total_rows),
+        "is_synthetic_data": use_synthetic,
         "kpis": kpis,
         "weekly_series": weekly_series,
         "districts_top_incidence": top_incidence,
@@ -280,8 +319,23 @@ def overview(
         "data_quality": {
             "total_cases": int(total_rows),
             "synthetic_rows": int(synthetic_rows),
-            "districts": len(units),
-            "weeks": len({week for (week,) in db.execute(select(DengueCase.week_start).distinct()).all()}),
+            "districts": len(
+                {
+                    code
+                    for (code,) in db.execute(
+                        select(DengueCase.district_code).where(DengueCase.is_synthetic.is_(use_synthetic)).distinct()
+                    ).all()
+                }
+            )
+            or len(units),
+            "weeks": len(
+                {
+                    week
+                    for (week,) in db.execute(
+                        select(DengueCase.week_start).where(DengueCase.is_synthetic.is_(use_synthetic)).distinct()
+                    ).all()
+                }
+            ),
             "last_import": {
                 "job_key": last_import.job_key,
                 "status": last_import.status,

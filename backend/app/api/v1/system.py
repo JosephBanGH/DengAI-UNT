@@ -34,13 +34,16 @@ def health(db: Session = Depends(get_db)) -> HealthStatus:
         )
     if not settings.POSTGIS_ENABLED:
         limitations.append("PostGIS deshabilitado: la geometría se sirve como GeoJSON almacenado.")
+    from app.ml.features import resolve_data_mode
+
     xgb = _xgboost()
     torch_state = torch_info()
     if not torch_state.get("available"):
         limitations.append("PyTorch no disponible: los modelos neuronales (LSTM, ConvLSTM, CNN-LSTM, ConvLSTM-Attention) quedan inhabilitados.")
-    limitations.append(
-        "Los datos cargados por defecto son SINTÉTICOS de demostración y están identificados como tales."
-    )
+    if db is not None and resolve_data_mode(db) == "synthetic":
+        limitations.append(
+            "Los datos cargados por defecto son SINTÉTICOS de demostración y están identificados como tales."
+        )
 
     return HealthStatus(
         status="ok",

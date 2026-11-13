@@ -19,6 +19,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.errors import NotFoundError, ValidationError
+from app.ml.features import resolve_data_mode
 from app.models.epi import DataQualityRecord, DataSource, DengueCase, ImportJob
 from app.models.geo import GeographicUnit
 from app.models.ml import Experiment, ModelVersion, Prediction
@@ -45,7 +46,13 @@ REPORT_TYPES: Dict[str, Dict[str, Any]] = {
     "evolucion_alertas": {"category": "managerial", "title": "Evolución de las alertas", "requires_period": True},
     "indicadores_gestion": {"category": "managerial", "title": "Indicadores clave de gestión", "requires_period": False},
     "comparacion_periodos": {"category": "managerial", "title": "Comparación de periodos", "requires_period": True},
+    "fase1_caracterizacion_validacion": {
+        "category": "operational",
+        "title": "Fase 1: Calidad, Estadística y Validación de Grupos",
+        "requires_period": False,
+    },
 }
+
 
 
 def report_type_catalog() -> List[Dict[str, Any]]:
@@ -80,7 +87,9 @@ def _description(key: str) -> str:
         "evolucion_alertas": "Evolución temporal de alertas por nivel.",
         "indicadores_gestion": "Indicadores operativos de la plataforma.",
         "comparacion_periodos": "Comparación de periodos seleccionados.",
+        "fase1_caracterizacion_validacion": "Informe técnico de Fase 1: calidad, estadística descriptiva, correlaciones clima-dengue, semáforo de fuga y validación de particiones.",
     }
+
     return texts.get(key, "")
 
 
@@ -88,7 +97,7 @@ def _collect(db: Session, report_type: str, filters: Dict[str, Any], period: Opt
     """Construye las secciones del reporte a partir de datos reales de la base."""
     sections: List[Dict[str, Any]] = []
     units = {u.code: u for u in db.scalars(select(GeographicUnit))}
-    synthetic = bool(db.scalar(select(func.count()).select_from(DengueCase).where(DengueCase.is_synthetic.is_(True))) or 0)
+    synthetic = resolve_data_mode(db) == "synthetic"
 
     def add(title: str, kind: str, content: Any) -> None:
         sections.append({"title": title, "kind": kind, "content": content})
@@ -167,11 +176,11 @@ def _collect(db: Session, report_type: str, filters: Dict[str, Any], period: Opt
             ],
         })
     elif report_type in ("resumen_epidemiologico", "tendencias_historicas", "comparacion_periodos"):
-        end = period[1] if period else db.scalar(select(func.max(DengueCase.week_start)))
+        end = period[1] if period else db.scalar(select(func.max(DengueCase.week_start)).where(DengueCase.is_synthetic.is_(synthetic)))
         start = period[0] if period else (end - timedelta(weeks=26) if end else None)
         stmt = (
             select(DengueCase.week_start, func.sum(DengueCase.confirmed_cases))
-            .where(DengueCase.week_start >= start, DengueCase.week_start <= end)
+            .where(DengueCase.week_start >= start, DengueCase.week_start <= end, DengueCase.is_synthetic.is_(synthetic))
             .group_by(DengueCase.week_start)
             .order_by(DengueCase.week_start)
         )
@@ -186,6 +195,7 @@ def _collect(db: Session, report_type: str, filters: Dict[str, Any], period: Opt
     elif report_type in ("distribucion_territorial", "distritos_prioritarios"):
         stmt = (
             select(DengueCase.district_code, func.sum(DengueCase.confirmed_cases))
+            .where(DengueCase.is_synthetic.is_(synthetic))
             .group_by(DengueCase.district_code)
             .order_by(func.sum(DengueCase.confirmed_cases).desc())
         )
@@ -237,6 +247,57 @@ def _collect(db: Session, report_type: str, filters: Dict[str, Any], period: Opt
             {"label": "Eventos de auditoría", "value": int(db.scalar(select(func.count()).select_from(AuditEvent)) or 0)},
             {"label": "Reportes generados", "value": int(db.scalar(select(func.count()).select_from(Report)) or 0)},
         ])
+    elif report_type == "fase1_caracterizacion_validacion":
+        from app.services.statistics_service import compute_dataset_statistics
+        from app.services.validation_service import audit_group_validation
+
+        val = audit_group_validation(db)
+        stats_data = compute_dataset_statistics(db)
+
+        add("Certificado de Validación de Grupos y Prevención de Fuga", "table", {
+            "columns": ["Chequeo", "Descripción", "Resultado", "Evidencia"],
+            "rows": [
+                [v["id"], v["title"], v["status"], v["details"]]
+                for v in val["leakage_risk"]["verifications"]
+            ],
+        })
+
+        add("Estadísticas Descriptivas Univariadas", "table", {
+            "columns": ["Variable", "Unidad", "Válidos", "Media", "Desv. Est.", "Mediana", "IQR", "Mínimo", "Máximo", "Asimetría"],
+            "rows": [
+                [
+                    u["variable"], u["unit"], u["valid_count"],
+                    _fmt(u["mean"]), _fmt(u["std"]), _fmt(u["median"]),
+                    _fmt(u["iqr"]), _fmt(u["min"]), _fmt(u["max"]), _fmt(u["skewness"]),
+                ]
+                for u in stats_data["univariate_statistics"]
+            ],
+        })
+
+        if stats_data.get("correlations"):
+            add("Correlaciones Bivariadas Clima vs Casos", "table", {
+                "columns": ["Variable Exógena", "Objetivo", "Pearson (r)", "p-valor (Pearson)", "Spearman (rho)", "Significativo (p<0.05)"],
+                "rows": [
+                    [
+                        c["feature_x"], c["feature_y"], _fmt(c["pearson"]),
+                        _fmt(c["pearson_p_value"]), _fmt(c["spearman"]),
+                        "Sí" if c["significant_05"] else "No",
+                    ]
+                    for c in stats_data["correlations"]
+                ],
+            })
+
+        add("Interpretación en Lenguaje Natural (Explicabilidad)", "table", {
+            "columns": ["Tópico", "Indicadores Observados", "Comportamiento e Implicancia Metodológica"],
+            "rows": [
+                [
+                    e["topic"],
+                    e["indicator"],
+                    f"{e['behavior']} | Implicancia: {e['methodological_implication']} (Precaución: {e['epistemic_caution']})",
+                ]
+                for e in stats_data.get("automated_explanations", [])
+            ],
+        })
     else:
         add("Sin datos", "text", "El tipo de reporte solicitado no tiene secciones definidas.")
 
@@ -527,7 +588,9 @@ def report_file(db: Session, report_id: int) -> tuple:
         raise NotFoundError("El reporte no existe.")
     if record.status != "READY" or not record.file_path:
         raise ValidationError("El reporte no está disponible para descarga.")
-    path = Path(record.file_path)
+    from app.ml.trainer import resolve_artifact_path
+
+    path = resolve_artifact_path(record.file_path)
     if not path.exists():
         raise NotFoundError("El archivo del reporte no se encuentra en el almacenamiento.")
     return path, record
