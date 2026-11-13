@@ -24,4 +24,4 @@ psycopg2-binary>=2.9
 geoalchemy2>=0.15
 python-docx>=1.1
 openpyxl>=3.1
-XlsxWriter>=3.2
+XlsxWriter>=3.3.1
